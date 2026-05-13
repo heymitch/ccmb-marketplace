@@ -187,14 +187,18 @@ The first-run cost is the design interview. Every page after is downhill.
 
 ## 10. Vercel handling
 
-The skill picks a deploy path based on environment, in this order:
+**Important framing:** The deploy mechanism is the **Vercel CLI** in every environment. There's no "the Connector deploys directly" path — the Vercel Connector (Claude Desktop → Settings → Connectors → Vercel) is an *auth + coaching layer.* It authenticates the user's Vercel account once and instructs the agent on the right CLI invocation. The actual `vercel deploy` still runs via the agent's Bash tool. The Vercel **MCP server** (separate, optional) is the only path that replaces the CLI — and only if the student has it installed and connected.
 
-1. **Vercel MCP / Connector available** (Claude Desktop, Cowork, or any environment with the Vercel MCP server connected) — preferred. The skill calls MCP tools directly, no CLI install needed. Auth is already established at Connector setup time.
-2. **Vercel CLI present + authenticated** (`vercel whoami` returns a user) — use CLI for deploy.
-3. **Vercel CLI present, not authenticated** — skill runs `vercel login` for the user. The OAuth opens a browser. User clicks once, returns. Skill detects auth and proceeds.
-4. **No Vercel CLI, no MCP** — skill installs CLI itself: `npm i -g vercel`. Then proceeds to step 3 above. The agent does the install via Bash; user does not need to open a separate terminal. If global install fails (sudo not available), skill falls back to `npx vercel` for the single deploy.
+Deploy path selection, in this order:
 
-The skill never asks the user to "open a terminal and run X." The only manual moment is the one-time `vercel login` browser OAuth click (local environments) or the one-time Connector approval in Settings (desktop environments). Both are ~10 seconds. After that, every future deploy is autonomous.
+1. **Vercel MCP server is connected** — call its `deploy_to_vercel` tool directly. No CLI involved. This is rare for CCMB students (the MCP isn't part of the default install).
+2. **Vercel Connector is configured (Desktop) or `vercel whoami` returns a user (local)** — auth is already established. Skill runs `vercel deploy --prod --yes` via Bash.
+3. **Vercel CLI present, not authenticated** — skill runs `vercel login`. OAuth opens a browser. User clicks once, returns. Skill detects auth and proceeds. If running in Claude Desktop with no Connector, skill prints: "Quickest path: open Settings → Connectors → Vercel → Connect. Or run `vercel login` and click the link. Say 'continue' when done." Pauses.
+4. **No Vercel CLI present** — skill installs it. If `ccmb-safe-install` is also installed (check `~/.claude/skills/ccmb-safe-install/`), route through it: `safe-npm i -g vercel` — picks up the pinned version from `campaign-status.json` automatically. Otherwise: `npm i -g vercel` direct. If global install fails (no sudo in restricted environments): fall back to `npx vercel` for the deploy.
+
+The skill never asks the user to "open a terminal." Bash runs inside the existing Claude Code session. The only manual moments are:
+- **First-ever Vercel auth.** Either click the Connector approval in Settings (Desktop) or click the OAuth link `vercel login` prints (local). One-time, ~10 seconds.
+- **Sandbox where neither CLI install nor MCP path works.** Skill pauses and explains the environment limitation rather than failing silently.
 
 Project naming: defaults to `[brand-slug]-[copy-slug]` (e.g., `heymitch-drive-skill`). User can override at scaffold step.
 
@@ -202,8 +206,10 @@ Re-deploys: detects existing `.vercel/project.json` and links to the same projec
 
 ## 11. Failure modes and recovery
 
-- **No Vercel CLI and no Vercel MCP, in a sandboxed environment that blocks `npm i -g`.** Rare — Cowork-style environments whitelist npm registry, so global install works. If it truly fails: skill falls back to `npx vercel deploy --prod --yes`. Slower (cold npx fetch each run), but works.
-- **`vercel login` OAuth times out** (user didn't click the browser link). Skill detects the timeout, prints: "I opened the Vercel login flow but didn't see the auth complete. Click the link Vercel printed, then say 'continue'." Pauses.
+- **`vercel` command not found, `npm i -g` blocked by sandbox.** Cowork-style environments whitelist npm registry so global install works in most cases. If it truly fails: fall back to `npx vercel deploy --prod --yes`. Slower (cold npx fetch each run), but no manual intervention needed.
+- **`ccmb-safe-install` is installed and quarantines `vercel`.** The shield's `campaign-status.json` pins to a known-good version (currently `39.4.0`). The skill calls `safe-npm` instead of raw `npm i -g`, so the pin is honored automatically. If the shield blocks even the pinned version (e.g., during an active CVE campaign), the skill prints the shield's error and pauses for the user to either wait, `--pin-override`, or contact maintainer.
+- **`vercel login` OAuth times out** (user didn't click the browser link). Skill detects the timeout, prints: "I opened the Vercel login flow but didn't see the auth complete. Click the link Vercel printed, then say 'continue'."
+- **Connector configured but expired** (Desktop). The CLI invocation returns an auth error. Skill prints: "Vercel Connector token expired. Open Settings → Connectors → Vercel → Reconnect. Then say 'continue'."
 - **Vercel project name collision.** Skill detects "already in use" and offers an alternate slug. Defaults to `[name]-v2`.
 - **`copy.json` malformed.** Skill validates JSON before scaffolding. Prints exact line/column of error. Suggests re-running `/ccmb-lp-copy` if user can't fix.
 - **`design-tokens.json` missing required keys.** Skill validates the schema. Prompts to re-run `/ccmb-lp-design` if keys missing.
@@ -215,6 +221,7 @@ Re-deploys: detects existing `.vercel/project.json` and links to the same projec
 
 - **`/ccmb-lp-design`** — hard prerequisite. Auto-invoked if cache missing.
 - **`/ccmb-lp-copy`** — hard prerequisite. Auto-invoked if `copy.json` missing.
+- **`ccmb-safe-install`** — if installed, the build skill routes any `npm i -g vercel` through `safe-npm` to honor pinned versions and CVE quarantine from `campaign-status.json`. No flag needed; the composition is automatic when both skills are present.
 - **`/ccmb-headline-writer`** — optional pre-step. Use to iterate hero options before `/ccmb-lp-copy` locks them.
 - **`/ccmb-sentence-editor`** — post-deploy polish. Use to tighten individual paragraphs after the page ships, then `/ccmb-lp-build` to redeploy.
 - **`/ccmb-landing-page`** — the monolith alternative. Use when you want one-shot, no artifacts. Use this skill when you want explicit separation + reusable design.
