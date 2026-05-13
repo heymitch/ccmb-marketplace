@@ -187,18 +187,27 @@ The first-run cost is the design interview. Every page after is downhill.
 
 ## 10. Vercel handling
 
-**Important framing:** The deploy mechanism is the **Vercel CLI** in every environment. There's no "the Connector deploys directly" path — the Vercel Connector (Claude Desktop → Settings → Connectors → Vercel) is an *auth + coaching layer.* It authenticates the user's Vercel account once and instructs the agent on the right CLI invocation. The actual `vercel deploy` still runs via the agent's Bash tool. The Vercel **MCP server** (separate, optional) is the only path that replaces the CLI — and only if the student has it installed and connected.
+**The deploy mechanism is the Vercel CLI in every environment.** Connector, MCP, raw Bash — they're all surfaces over the same `vercel deploy` binary. The Vercel Connector (Claude Desktop → Settings → Connectors → Vercel) handles auth + coaches the agent on the right CLI invocation. The Vercel MCP server's `deploy_to_vercel` tool is a structured wrapper that also shells out to the CLI. None of them deploy "instead of" the CLI.
 
-Deploy path selection, in this order:
+What actually varies per environment:
 
-1. **Vercel MCP server is connected** — call its `deploy_to_vercel` tool directly. No CLI involved. This is rare for CCMB students (the MCP isn't part of the default install).
-2. **Vercel Connector is configured (Desktop) or `vercel whoami` returns a user (local)** — auth is already established. Skill runs `vercel deploy --prod --yes` via Bash.
-3. **Vercel CLI present, not authenticated** — skill runs `vercel login`. OAuth opens a browser. User clicks once, returns. Skill detects auth and proceeds. If running in Claude Desktop with no Connector, skill prints: "Quickest path: open Settings → Connectors → Vercel → Connect. Or run `vercel login` and click the link. Say 'continue' when done." Pauses.
-4. **No Vercel CLI present** — skill installs it. If `ccmb-safe-install` is also installed (check `~/.claude/skills/ccmb-safe-install/`), route through it: `safe-npm i -g vercel` — picks up the pinned version from `campaign-status.json` automatically. Otherwise: `npm i -g vercel` direct. If global install fails (no sudo in restricted environments): fall back to `npx vercel` for the deploy.
+| Environment | How CLI gets installed | How auth happens | How the agent invokes |
+|---|---|---|---|
+| Local Claude Code (terminal) | Agent runs `npm i -g vercel` via Bash (or `safe-npm` if `ccmb-safe-install` present) | `vercel login` — one-time OAuth browser click | Bash: `vercel deploy --prod --yes` |
+| Claude Desktop + Vercel Connector | Connector ensures CLI is available or coaches install | Connector handshake — one-time approval in Settings | Bash: `vercel deploy --prod --yes` (Connector keeps token current) |
+| Claude Desktop + Vercel MCP server | Agent install via Bash; MCP exposes the deploy tool | MCP-managed token | MCP tool call: `deploy_to_vercel(...)` (which then shells out to CLI internally) |
+
+Resolution order the skill walks through:
+
+1. **CLI present + authenticated** (`vercel whoami` returns a user, or Connector token is current, or MCP token is current) — proceed straight to deploy.
+2. **CLI present, not authenticated** — skill runs `vercel login`. OAuth opens a browser. User clicks once. Skill detects auth and proceeds. If in Claude Desktop with no Connector configured: skill nudges user toward the Connector path as an alternative — "fastest is Settings → Connectors → Vercel → Connect. Or stay with the CLI login flow."
+3. **CLI not present** — skill installs it. If `ccmb-safe-install` is installed, route through `safe-npm i -g vercel` so the pinned version from `campaign-status.json` is honored. Otherwise raw `npm i -g vercel`. If global install is blocked (no sudo in restricted environments): fall back to `npx vercel` per-deploy.
+
+Tool surface for the actual deploy call: skill prefers Vercel MCP `deploy_to_vercel` if present (cleaner error surface, structured response), otherwise Bash `vercel deploy --prod --yes`. Result is identical either way.
 
 The skill never asks the user to "open a terminal." Bash runs inside the existing Claude Code session. The only manual moments are:
-- **First-ever Vercel auth.** Either click the Connector approval in Settings (Desktop) or click the OAuth link `vercel login` prints (local). One-time, ~10 seconds.
-- **Sandbox where neither CLI install nor MCP path works.** Skill pauses and explains the environment limitation rather than failing silently.
+- **First-ever Vercel auth.** Connector approval in Settings (Desktop) or OAuth click for `vercel login` (local). One-time, ~10 seconds.
+- **Sandbox where CLI install is blocked AND `npx vercel` is also blocked.** Skill pauses and explains the environment limitation rather than failing silently. Extremely rare — `npx` works wherever npm registry is whitelisted.
 
 Project naming: defaults to `[brand-slug]-[copy-slug]` (e.g., `heymitch-drive-skill`). User can override at scaffold step.
 
