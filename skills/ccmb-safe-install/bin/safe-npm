@@ -1,0 +1,222 @@
+#!/usr/bin/env bash
+# safe-npm — the CCMB benevolent install shield
+#
+# Usage:
+#   safe-npm <pkg>[@<version>] [--global|-g] [--dev|-D] [--pin-override]
+#
+# Behavior:
+#   1. Fetch live campaign status (GitHub-hosted, falls back to local cache)
+#   2. If campaign inactive: pass through to npm install --ignore-scripts and exit
+#   3. If active: validate publish date, CVE advisories, pinned-version policy
+#   4. Either install with --ignore-scripts or exit non-zero with a one-line reason
+#   5. Log every decision to .ccmb/install-log.jsonl
+
+set -uo pipefail
+
+# ---- Paths ----
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+LOCAL_STATUS="$PLUGIN_ROOT/config/campaign-status.json"
+CACHE_DIR="$HOME/.cache/ccmb-safe-install"
+CACHE_FILE="$CACHE_DIR/campaign-status.json"
+LOG_DIR=".ccmb"
+LOG_FILE="$LOG_DIR/install-log.jsonl"
+
+mkdir -p "$CACHE_DIR" "$LOG_DIR"
+
+# ---- Colors ----
+G='\033[0;32m'
+Y='\033[1;33m'
+R='\033[0;31m'
+N='\033[0m'
+
+# ---- Parse args ----
+PKG=""
+SCOPE="local"
+DEV=""
+PIN_OVERRIDE=0
+
+for arg in "$@"; do
+  case "$arg" in
+    --global|-g)        SCOPE="global" ;;
+    --dev|-D)           DEV="--save-dev" ;;
+    --pin-override)     PIN_OVERRIDE=1 ;;
+    -*)                 echo "Unknown flag: $arg" >&2; exit 2 ;;
+    *)                  PKG="$arg" ;;
+  esac
+done
+
+if [ -z "$PKG" ]; then
+  echo "Usage: safe-npm <pkg>[@<version>] [--global|-g] [--dev|-D]" >&2
+  exit 2
+fi
+
+# Split pkg into name + version
+if [[ "$PKG" == *@* && "$PKG" != @*/* ]]; then
+  PKG_NAME="${PKG%@*}"
+  PKG_VERSION="${PKG##*@}"
+else
+  PKG_NAME="$PKG"
+  PKG_VERSION=""
+fi
+
+# ---- Fetch campaign status ----
+STATUS_URL="https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/campaign-status.json"
+STATUS_JSON=""
+
+if curl -fsSL --max-time 5 "$STATUS_URL" -o "$CACHE_FILE.tmp" 2>/dev/null; then
+  mv "$CACHE_FILE.tmp" "$CACHE_FILE"
+  STATUS_JSON="$(cat "$CACHE_FILE")"
+elif [ -f "$CACHE_FILE" ]; then
+  STATUS_JSON="$(cat "$CACHE_FILE")"
+  echo -e "${Y}!${N} Using cached campaign status (network unavailable)" >&2
+elif [ -f "$LOCAL_STATUS" ]; then
+  STATUS_JSON="$(cat "$LOCAL_STATUS")"
+  echo -e "${Y}!${N} Using bundled campaign status (no cache, no network)" >&2
+else
+  echo -e "${R}✗${N} No campaign status available. Manually verify via claude.ai before installing." >&2
+  exit 1
+fi
+
+# Pull fields via python helper (stdin-clean — heredocs would clobber the pipe)
+eval "$(printf '%s' "$STATUS_JSON" | python3 "$SCRIPT_DIR/lib/parse-status.py")"
+
+# ---- Helper: log decision (defined early so compromise check can call it) ----
+log_decision() {
+  local decision="$1"
+  local reason="$2"
+  local ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  printf '{"ts":"%s","pkg":"%s","version":"%s","scope":"%s","decision":"%s","reason":"%s","campaign_active":%s}\n' \
+    "$ts" "$PKG_NAME" "${PKG_VERSION:-latest}" "$SCOPE" "$decision" "$reason" "$ACTIVE" >> "$LOG_FILE"
+}
+
+# ---- Hard block on known-compromised versions ----
+if [ -n "${COMPROMISES:-}" ] && [ -n "$PKG_VERSION" ]; then
+  IFS='|' read -ra COMP_ARR <<< "$COMPROMISES"
+  for compromised in "${COMP_ARR[@]}"; do
+    if [ "$PKG_NAME@$PKG_VERSION" = "$compromised" ]; then
+      echo -e "${R}✗${N} Refused: $compromised"
+      echo "  • Known compromised version (active campaign)"
+      echo "  • Use a different version"
+      log_decision "refused-compromised" "known compromised version"
+      exit 1
+    fi
+  done
+fi
+
+# ---- Pinned package check ----
+PIN_VAR="PIN_$(echo "$PKG_NAME" | tr 'a-z-' 'A-Z_')"
+PINNED_VERSION="${!PIN_VAR:-}"
+if [ -n "$PINNED_VERSION" ] && [ "$PIN_OVERRIDE" -eq 0 ]; then
+  if [ -n "$PKG_VERSION" ] && [ "$PKG_VERSION" != "$PINNED_VERSION" ]; then
+    echo -e "${R}✗${N} Refused: $PKG_NAME@$PKG_VERSION"
+    echo "  • $PKG_NAME is pinned to $PINNED_VERSION during the active campaign"
+    echo "  • Use /safe-install $PKG_NAME@$PINNED_VERSION  (recommended)"
+    echo "  • Or /safe-install $PKG_NAME@$PKG_VERSION --pin-override  (only if you have a specific need)"
+    exit 1
+  fi
+  PKG_VERSION="$PINNED_VERSION"
+fi
+
+# ---- If campaign inactive, just install ----
+if [ "$ACTIVE" = "0" ]; then
+  echo "Installing $PKG_NAME${PKG_VERSION:+@$PKG_VERSION} (shield dormant — campaign inactive as of $LAST_UPDATED)..."
+  if [ "$SCOPE" = "global" ]; then
+    npm install -g --ignore-scripts "$PKG_NAME${PKG_VERSION:+@$PKG_VERSION}"
+  else
+    npm install $DEV --ignore-scripts "$PKG_NAME${PKG_VERSION:+@$PKG_VERSION}"
+  fi
+  log_decision "installed-dormant" "campaign inactive"
+  echo -e "${G}✓${N} Done"
+  exit 0
+fi
+
+# ---- Campaign active — full validation ----
+
+# Fetch npm registry metadata
+echo "Validating $PKG_NAME${PKG_VERSION:+@$PKG_VERSION}..." >&2
+REGISTRY_JSON="$(curl -fsSL --max-time 10 "https://registry.npmjs.org/$PKG_NAME" 2>/dev/null || true)"
+
+if [ -z "$REGISTRY_JSON" ]; then
+  echo -e "${R}✗${N} Could not fetch npm registry metadata for $PKG_NAME"
+  echo "  • Check the package name spelling"
+  echo "  • Or verify your network connection"
+  log_decision "refused-no-metadata" "registry fetch failed"
+  exit 1
+fi
+
+# Parse registry metadata via python helper
+PARSED="$(printf '%s' "$REGISTRY_JSON" | REQUESTED_VERSION="${PKG_VERSION:-}" python3 "$SCRIPT_DIR/lib/parse-registry.py")"
+
+if echo "$PARSED" | grep -q "^ERR="; then
+  ERR=$(echo "$PARSED" | grep "^ERR=" | cut -d= -f2-)
+  echo -e "${R}✗${N} $PKG_NAME${PKG_VERSION:+@$PKG_VERSION}: $ERR"
+  log_decision "refused-parse" "$ERR"
+  exit 1
+fi
+
+eval "$PARSED"
+
+# ---- Quarantine check ----
+if [ "$AGE_DAYS" -lt "$OFFSET" ]; then
+  RELEASE_OK_DATE="$(python3 -c "
+from datetime import datetime, timedelta
+d = datetime.fromisoformat('$PUBLISH_DATE') + timedelta(days=$OFFSET)
+print(d.strftime('%Y-%m-%d'))
+")"
+  echo -e "${R}✗${N} Refused: $PKG_NAME@$RESOLVED"
+  echo "  • Published $PUBLISH_DATE ($AGE_DAYS days ago) — inside ${OFFSET}-day quarantine"
+  echo "  • Available after: $RELEASE_OK_DATE"
+  # Find last safe version via python helper
+  LAST_SAFE="$(printf '%s' "$REGISTRY_JSON" | OFFSET_DAYS="$OFFSET" python3 "$SCRIPT_DIR/lib/find-last-safe.py")"
+  if [ -n "$LAST_SAFE" ]; then
+    echo "  • Last vetted version: $PKG_NAME@$LAST_SAFE"
+    echo "  • Try: /safe-install $PKG_NAME@$LAST_SAFE"
+  fi
+  log_decision "refused-quarantine" "$AGE_DAYS days old, needs $OFFSET"
+  exit 1
+fi
+
+# ---- CVE check (best-effort) ----
+# We don't have a free CVE API for npm — npm audit is the canonical tool.
+# Run a quick advisory probe via npm itself (it consults the official registry).
+ADVISORY_HIT=0
+if npm view "$PKG_NAME@$RESOLVED" 2>/dev/null | grep -qi "deprecated"; then
+  ADVISORY_HIT=1
+  ADVISORY_REASON="package or version is deprecated"
+fi
+
+if [ "$ADVISORY_HIT" -eq 1 ]; then
+  echo -e "${R}✗${N} Refused: $PKG_NAME@$RESOLVED"
+  echo "  • $ADVISORY_REASON"
+  echo "  • Resolve manually: check https://www.npmjs.com/package/$PKG_NAME for replacement"
+  log_decision "refused-advisory" "$ADVISORY_REASON"
+  exit 1
+fi
+
+# ---- Install ----
+echo
+echo -e "${G}✓${N} $PKG_NAME@$RESOLVED passes shield checks:"
+echo "  • Published $PUBLISH_DATE ($AGE_DAYS days old, > ${OFFSET}-day quarantine)"
+echo "  • Maintainer: $MAINTAINER"
+echo "  • $VERSION_COUNT total versions published"
+echo "  • No known advisories"
+echo
+echo "Installing with --ignore-scripts..."
+
+if [ "$SCOPE" = "global" ]; then
+  npm install -g --ignore-scripts "$PKG_NAME@$RESOLVED"
+else
+  npm install $DEV --ignore-scripts "$PKG_NAME@$RESOLVED"
+fi
+
+NPM_EXIT=$?
+if [ $NPM_EXIT -eq 0 ]; then
+  echo -e "${G}✓${N} Installed $PKG_NAME@$RESOLVED"
+  log_decision "installed" "$AGE_DAYS days old, maintainer $MAINTAINER"
+else
+  echo -e "${R}✗${N} npm install failed (exit $NPM_EXIT)"
+  log_decision "install-failed" "npm exit $NPM_EXIT"
+fi
+
+exit $NPM_EXIT

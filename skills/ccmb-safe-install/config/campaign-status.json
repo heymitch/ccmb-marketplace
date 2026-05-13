@@ -1,0 +1,13 @@
+{
+  "campaign_active": true,
+  "campaign_name": "Mini Shai-Hulud / TeamPCP",
+  "started": "2026-05-11",
+  "last_updated": "2026-05-13",
+  "before_date_offset_days": 14,
+  "pinned_packages": {
+    "vercel": "39.4.0"
+  },
+  "recent_compromises": [],
+  "notes": "Active worm targeting freshly published npm packages via lifecycle hooks. The shield blocks anything published in the last 14 days unless explicitly overridden. Vercel CLI pinned to last known-good. Flip campaign_active to false when CISA / Anthropic / GitHub / npm signal containment.",
+  "support_url": "https://heymitch.ai/ccmb/campaign-status"
+}

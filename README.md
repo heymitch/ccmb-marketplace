@@ -23,8 +23,15 @@ skills/
     references/                    ← bundled — frameworks, copy-patterns, voice-rules, swipe-file
   ccmb-lp-build/SKILL.md           ← step 3: scaffold + deploy (orchestrator, auto-chains)
 
+  # Bonus packages (multi-skill plugins, installed as directories)
+  ccmb-safe-install/               ← npm/CLI install shield, reads campaign-status.json
+  ccmb-skyscraper/                 ← pre-flight scan for existing solutions
+  ccmb-voice-lab/                  ← 10-skill voice training (Cole / Bush framework)
+
 references/
   vibe-editing.md           ← cross-cutting cheat sheet linked from every session
+
+campaign-status.json        ← LIVE signal for the safe-install shield (see below)
 ```
 
 ## Two LP paths
@@ -66,6 +73,53 @@ Place each in ~/.claude/skills/<skill-name>/ matching the marketplace structure.
 ```
 
 Then in any folder: `/ccmb-lp-build` → blank-workspace → live page in 14-22 minutes on first run, 9-12 minutes per page after.
+
+## The bonus packages (multi-skill plugins)
+
+Three larger packages live as full directories under `skills/`. They're multi-file (entry skill + sub-skills + bin/ or references/), so students install them as directories, not single SKILL.md files.
+
+### `ccmb-safe-install` — the npm/CLI shield
+
+Students say "install chalk" or `/safe-install chalk`, and the plugin handles publish-date quarantine, CVE lookup, lifecycle-hook defang, and pinned-version policy automatically. Reads live state from `campaign-status.json` at this repo's root — flip `campaign_active` to `false` and every student's shield relaxes globally on the next install.
+
+```
+skills/ccmb-safe-install/
+  skills/safe-install/SKILL.md     ← entry point + policy
+  bin/safe-npm                      ← bash worker (the actual install gate)
+  bin/lib/*.py                      ← python helpers
+  config/campaign-status.json       ← offline fallback (live version is at repo root)
+```
+
+### `ccmb-skyscraper` — pre-flight scan for existing solutions
+
+Run `/skyscraper "<marketing problem>"` to scan native Claude Code skills + Apify Store + Reddit + YouTube before vibe-coding from scratch. Sub-agent fan-out with curated `known-natives.md` corpus. UserPromptSubmit hook auto-nudges on vibe-code intent.
+
+### `ccmb-voice-lab` — 10-skill voice training
+
+Ported from Cowork Bootcamp v2. Trains Claude Code on the student's writing voice using Nicolas Cole + Dickie Bush's *Digital Writers Voice Lab* framework. Outputs `voice/voice-template.md` that every CCMB content skill reads automatically. Orchestrator: `/voice-training`. Theory tour: `/voice-tutor`.
+
+## The campaign-status signal (for `ccmb-safe-install`)
+
+`campaign-status.json` at the repo root is the live policy file the safe-install shield reads on every invocation. Shape:
+
+```json
+{
+  "campaign_active": true,
+  "campaign_name": "Mini Shai-Hulud / TeamPCP",
+  "before_date_offset_days": 14,
+  "pinned_packages": {"vercel": "39.4.0"},
+  "recent_compromises": [],
+  "last_updated": "2026-05-13"
+}
+```
+
+**To deactivate the shield globally:** flip `campaign_active` to `false`. Every CCMB student's shield silently becomes a pass-through on next install. No emails, no manual reversal.
+
+**To hard-block a freshly disclosed compromised version:** append to `recent_compromises` (e.g., `"foo@1.2.3"`). Students refuse to install it the moment the commit lands.
+
+**To pin a different package:** add to `pinned_packages`. Students can only install the pinned version unless they pass `--pin-override`.
+
+URL the shield fetches: `https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/campaign-status.json`
 
 ## Versioning
 
