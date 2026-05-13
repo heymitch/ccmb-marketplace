@@ -187,7 +187,14 @@ The first-run cost is the design interview. Every page after is downhill.
 
 ## 10. Vercel handling
 
-The skill prefers Vercel CLI (`vercel deploy --prod --yes`) when available. Falls back to Vercel MCP if connected. Pauses + coaches reconnect if neither is available.
+The skill picks a deploy path based on environment, in this order:
+
+1. **Vercel MCP / Connector available** (Claude Desktop, Cowork, or any environment with the Vercel MCP server connected) — preferred. The skill calls MCP tools directly, no CLI install needed. Auth is already established at Connector setup time.
+2. **Vercel CLI present + authenticated** (`vercel whoami` returns a user) — use CLI for deploy.
+3. **Vercel CLI present, not authenticated** — skill runs `vercel login` for the user. The OAuth opens a browser. User clicks once, returns. Skill detects auth and proceeds.
+4. **No Vercel CLI, no MCP** — skill installs CLI itself: `npm i -g vercel`. Then proceeds to step 3 above. The agent does the install via Bash; user does not need to open a separate terminal. If global install fails (sudo not available), skill falls back to `npx vercel` for the single deploy.
+
+The skill never asks the user to "open a terminal and run X." The only manual moment is the one-time `vercel login` browser OAuth click (local environments) or the one-time Connector approval in Settings (desktop environments). Both are ~10 seconds. After that, every future deploy is autonomous.
 
 Project naming: defaults to `[brand-slug]-[copy-slug]` (e.g., `heymitch-drive-skill`). User can override at scaffold step.
 
@@ -195,7 +202,8 @@ Re-deploys: detects existing `.vercel/project.json` and links to the same projec
 
 ## 11. Failure modes and recovery
 
-- **Vercel CLI not installed.** Skill prints: "Run `npm i -g vercel` and `vercel login`, then say 'continue'." Pauses. Doesn't try to deploy without auth.
+- **No Vercel CLI and no Vercel MCP, in a sandboxed environment that blocks `npm i -g`.** Rare — Cowork-style environments whitelist npm registry, so global install works. If it truly fails: skill falls back to `npx vercel deploy --prod --yes`. Slower (cold npx fetch each run), but works.
+- **`vercel login` OAuth times out** (user didn't click the browser link). Skill detects the timeout, prints: "I opened the Vercel login flow but didn't see the auth complete. Click the link Vercel printed, then say 'continue'." Pauses.
 - **Vercel project name collision.** Skill detects "already in use" and offers an alternate slug. Defaults to `[name]-v2`.
 - **`copy.json` malformed.** Skill validates JSON before scaffolding. Prints exact line/column of error. Suggests re-running `/ccmb-lp-copy` if user can't fix.
 - **`design-tokens.json` missing required keys.** Skill validates the schema. Prompts to re-run `/ccmb-lp-design` if keys missing.
