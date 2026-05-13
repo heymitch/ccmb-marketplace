@@ -2,6 +2,38 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [0.3.3] — 2026-05-13
+
+Browser-use escalation for JS-rendered pages. Composes with `dev-browser` skill, `claude-in-chrome` MCP, or `computer-use` MCP — first available.
+
+### Added
+- **New §6.7: Browser-use escalation.** When WebFetch returns skeleton HTML on a high-value, eligible source, the cascade auto-escalates to a real-browser render. Detection rule: `useful_body_bytes < 500` AND source is in `BROWSER_USE_ELIGIBLE_SOURCES` AND row has ≥1 confirmed prior signal AND per-row time budget remaining > 20 sec.
+- **Eligible sources documented:** SaaS About pages (works ~85%), YouTube channel pages (~70%, Social Blade static fallback if browser-use also fails), Crunchbase public profiles (~60%), Substack/Medium author pages (~80%), Notion-hosted sites (~65%).
+- **Explicitly-banned sources documented:** LinkedIn (TOS + ban risk), Instagram (bot detection too aggressive), Twitter/X (bot detection), Facebook (login walls), any site with confirmed anti-bot WAF. Skill detects these and skips with `failure_reason: anti_bot_challenge_detected`.
+- **Three extraction modes:** `text` (default, ~5-8 sec/row), `screenshot + transcribe` (when visual layout matters, ~10-15 sec/row), `inspect` (targeted DOM query, ~6-10 sec/row).
+- **Cost guardrail:** if browser-use fires on >25% of rows, skill prints a warning suggesting the playbook is mismatched. Typical healthy run = ~5-15% browser-use rate.
+
+### Composition
+- `dev-browser` skill (preferred — already in CCMB ecosystem, standalone or extension mode)
+- `mcp__claude-in-chrome__*` tools (second choice, requires Chrome extension)
+- `mcp__computer-use__*` tools (last resort, slowest)
+- None installed → graceful skip with `failure_reason: js_heavy_page_no_browser_tool`. **No browser tool is required** for cohort 1; the cascade still works on ~85% of rows that don't need JS rendering.
+
+### Failure modes added
+- `skeleton_html_browser_use_skipped` — WebFetch returned skeleton but row didn't meet escalation criteria.
+- `browser_use_timeout` — browser tool blocked >30 sec, skill killed it.
+- `anti_bot_challenge_detected` — Cloudflare/captcha page returned, skill detected and aborted.
+- `login_wall_detected` — redirect to `/login` or password form, skill detected and aborted.
+- `js_heavy_page_no_browser_tool` — no browser MCP/skill installed, escalation impossible.
+
+### Cascade playbooks updated
+- JS-heavy sources flagged with **🌐** marker in `cascade-playbooks.md`.
+- B2B SaaS founder playbook: About page + Crunchbase public profile flagged eligible.
+- Creator-thought-leader playbook: YouTube discovery flagged eligible + Social Blade static fallback documented.
+
+### Architecture note
+Browser-use is **escalation only, not default.** Most rows complete via WebFetch in <1 sec. Browser-use adds 5-15 sec per escalated row, which is fine for the ~5-15% of rows that need it but would tank the cascade time budget if applied universally. The detection heuristic + guardrail warning prevent it from running away.
+
 ## [0.3.2] — 2026-05-13
 
 Three critical fixes from cold dry-run + email-list-first input surface.

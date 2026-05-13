@@ -189,7 +189,8 @@ The actual mechanisms the skill calls. All free, all read-only, all public-data-
 | Source | Mechanism | What it returns |
 |---|---|---|
 | **WebSearch** | Claude Code built-in `WebSearch` tool | Search snippets, social URLs, About page URLs, public bio fragments |
-| **WebFetch** | Claude Code built-in `WebFetch` tool | Fetches a known URL, returns parsed text. Used to read About pages, blog posts, profile pages |
+| **WebFetch** | Claude Code built-in `WebFetch` tool | Fetches a known URL, returns parsed text. Used to read About pages, blog posts, profile pages. **Returns skeleton on JS-rendered pages — cascade auto-escalates to browser-use (§6.7) when this happens on an eligible source.** |
+| **Browser-use (escalation only)** | `dev-browser` skill / `claude-in-chrome` MCP / `computer-use` MCP — first available, in that order | Real-browser render of JS-heavy pages. Fires only when WebFetch returns skeleton AND the source is in BROWSER_USE_ELIGIBLE_SOURCES (§6.7). Adds 5-15 sec/row, used on ~5-15% of rows in a typical run. Graceful skip if no browser tool installed. |
 | **GitHub Public API** | HTTP GET `api.github.com/users/{username}` | Bio, company, blog URL, twitter handle, public repo count, recent activity. **No auth required for public data** at 60 req/hr — plenty for cohort scale |
 | **Reddit Public API** | HTTP GET `reddit.com/user/{username}/.json` | Bio, karma, recent posts, top subreddits. No auth required, generous rate limits |
 | **YouTube discovery** | WebSearch + WebFetch on channel pages | Channel URL, subscriber count from public search snippets, recent video titles from channel page. **No API key needed.** For deep transcript-level analysis on high-value rows, dispatches to `/research:youtube` (the existing competitor-research skill) — only fires when explicitly requested, not per-row |
@@ -252,6 +253,96 @@ These vendor CSVs often have richer columns (`# Employees`, `Industry`, `Annual 
 
 This is the "no vendor lock-in" migration story: the student paid for the data once, they own it forever, the skill enriches what's there without making them re-subscribe.
 
+## 6.7. Browser-use escalation (for JS-rendered pages)
+
+WebFetch is fast (<1 sec) but blind to JavaScript. Lots of high-value pages — SaaS company About pages, YouTube channel pages, Crunchbase public profiles, Substack author pages — are SPA-rendered and return skeleton HTML to WebFetch. The cascade silently fails on those rows unless we escalate.
+
+The fix: **when WebFetch returns skeleton, escalate to a real browser** that renders JS, captures the page state, and feeds back full content. Browser-use is 5-15 sec/row — slow enough that it shouldn't be the default, fast enough to be practical for ~5-15% of rows in a typical cascade run.
+
+### Detection — when to escalate
+
+The cascade decides per-row, per-source:
+
+```
+After a WebFetch call returns:
+  useful_body_bytes = length(strip_boilerplate(response_body))
+
+  if useful_body_bytes < 500 AND
+     this_source_is_in(BROWSER_USE_ELIGIBLE_SOURCES) AND
+     row_is_high_value(row.partial_score) AND
+     row.time_budget_remaining > 20 sec:
+       → escalate to browser-use
+  else:
+       → log failure_reason = "skeleton_html_browser_use_skipped" and continue cascade
+```
+
+`row_is_high_value` is a heuristic: row already has ≥1 confirmed signal from earlier cascade steps. We don't burn browser time on rows that returned nothing useful from the easier sources.
+
+### BROWSER_USE_ELIGIBLE_SOURCES (pages where browser-use actually helps)
+
+| Source | Why it benefits | Reliability |
+|---|---|---|
+| **SaaS company About pages** | Many are SPA-built (Vercel/Next.js with client-side rendering, framer.com sites, webflow with JS interactions) | High — works ~85% of time |
+| **YouTube channel pages** | Subscriber counts + recent video metadata are JS-rendered | Medium-high — works ~70% of time; Social Blade public pages are a more reliable static alternative |
+| **Crunchbase public profiles** | Firmographics rendered client-side from API | Medium — works ~60% of time; aggressive rate limiting after 5-10 requests |
+| **Substack / Medium author pages** | Subscriber counts + post lists JS-rendered | High — works ~80% of time |
+| **Etsy shops with dynamic listings** | Most shops static-render, but listing counts and "sold X items" badges are JS | Low priority — static fallback usually sufficient |
+| **Notion-hosted personal sites** | Notion's public pages need JS to render content | Medium — works ~65% of time |
+
+### NOT BROWSER_USE_ELIGIBLE (do not attempt — these will fail or get the student banned)
+
+| Source | Why it's banned |
+|---|---|
+| **LinkedIn (any URL)** | Per SKILL.md §6 — never crawl, regardless of mechanism. TOS + ban risk. |
+| **Instagram public profiles** | Aggressive bot detection. Even real browsers get login-walled within ~10 requests. Will burn time without returning data. |
+| **Twitter/X profiles (non-API)** | Same bot detection problem. The static fallback (WebSearch snippets) is more reliable than real-browser rendering. |
+| **Facebook pages** | Login wall on most public pages. Browser-use returns the wall, not the data. |
+| **Sites with confirmed anti-bot WAF (Cloudflare Turnstile, hCaptcha, etc.)** | Skip. The browser-use round-trip will fail and waste time budget. Skill detects challenge pages and aborts. |
+
+### Composition with available browser tools
+
+The cascade picks the first available browser path, in this priority order:
+
+1. **`dev-browser` skill installed** (`~/.claude/skills/dev-browser/` or via plugin) — preferred. Composes by dispatching the skill with the target URL + extraction mode. Skill handles Chromium launch, page state, returns text or screenshot.
+2. **`mcp__claude-in-chrome__*` MCP tools available** — second choice. Calls `get_page_text` or `read_page` directly. Requires the student to have the Claude-in-Chrome browser extension connected.
+3. **`mcp__computer-use__*` MCP tools available** — last resort. Slower (full screenshot + OCR-style extraction) but works for anything visible on the screen. Use only when 1 and 2 are unavailable AND the row is genuinely high-value.
+4. **None available** — graceful skip. Row gets `failure_reason: js_heavy_page_no_browser_tool` and the cascade continues. **Skill never errors out for missing browser tooling.**
+
+### Extraction modes
+
+When browser-use fires, the skill picks a mode based on what's needed:
+
+| Mode | When to use | Cost |
+|---|---|---|
+| **text** | Default. Read fully-rendered page text (DOM innerText or similar). Cheap, fast. | ~5-8 sec/row |
+| **screenshot + transcribe** | When visual layout matters — subscriber count rendered as a badge, "since YEAR" displayed graphically, before/after gallery imagery for craft businesses. Skill takes a screenshot, then Claude reads the image and extracts structured data. | ~10-15 sec/row, higher token cost |
+| **inspect** | Targeted DOM query for specific elements when text mode returns too much noise. E.g., "get the value of `[data-test=subscriber-count]`." | ~6-10 sec/row |
+
+Default to **text** unless the playbook explicitly says otherwise. The synthesized skyscraper-chain playbooks should specify mode per source.
+
+### Failure mode for browser-use
+
+- **Browser tool returns an error mid-run** → row gets `failure_reason: browser_use_failed:[reason]`, cascade continues with next row.
+- **Browser tool blocks the cascade for >30 sec on one row** → skill kills the call, marks `failure_reason: browser_use_timeout`, moves on.
+- **Browser tool returns a challenge page (Cloudflare/captcha)** → skill detects via content signatures (`"Verify you are human"`, `"Checking your browser"`), marks `failure_reason: anti_bot_challenge_detected`, does not retry.
+- **Browser tool returns a login wall** → skill detects via redirect to `/login` or `<form>` containing password fields, marks `failure_reason: login_wall_detected`.
+
+### Cost budget for browser-use
+
+Per cohort run, browser-use should fire on **5-15% of rows max**. If the detection heuristic is firing on >25% of rows, the playbook is wrong (cascade is hitting too many JS-heavy pages — probably means the WebSearch step is sending bad URLs).
+
+Skill prints a warning if browser-use fires >25% of the time:
+
+```
+⚠️ Browser-use fired on 32/50 rows. That's high — usually means the playbook
+is hitting too many JS-heavy pages. Consider:
+  - Switching playbook (current: [name])
+  - Adding a static fallback source before the browser-eligible one
+  - Lowering the row_is_high_value threshold
+
+This run will complete, but may take 2-3x longer than expected.
+```
+
 ## 7. Execution flow
 
 12 steps from "give me your list" to "ranked CSV in your repo."
@@ -269,11 +360,12 @@ This is the "no vendor lock-in" migration story: the student paid for the data o
 8. **Run email-first pre-cascade (§6.5) for email-primary rows.** Resolve domain → company, handle → name (when possible). Personal-email rows get the fallback path. Apollo/ListKit imports skip resolution where data is already present.
 9. **Run the cascade per row.** For each row:
    - Run playbook sources in order (with pre-resolved company already populated for email-first rows)
+   - **After each WebFetch call: check for skeleton HTML** (§6.7 detection rule). If detected AND source is browser-use eligible AND row is high-value AND time budget remaining > 20 sec → escalate to browser-use (dev-browser / claude-in-chrome / computer-use, first available). Else log `skeleton_html_browser_use_skipped` and continue.
    - Accumulate fields across sources
    - Stop early if all ENRICHABLE-bucket ICP signals matched
    - Skip remaining sources if per-row timeout hit
-   - Log which sources were consulted to `sources_used` column
-   - On any failure, log a `failure_reason` (name_too_common, rate_limited, no_public_footprint, etc.)
+   - Log which sources were consulted to `sources_used` column (mark browser-use escalations with `browser_use:[tool]` suffix)
+   - On any failure, log a `failure_reason` (name_too_common, rate_limited, no_public_footprint, skeleton_html_browser_use_skipped, browser_use_timeout, anti_bot_challenge_detected, etc.)
 10. **Score each row.** Reuse the existing `lib/lead-research.ts` scoring engine — unchanged. Outputs `score`, `band` (A/B/C/D), `signals_matched`, `top_signal`, `rationale_summary`. INFERRABLE-bucket signals contribute to score with a discount weight.
 11. **Rank + write outputs.** Sort by score descending. Write:
     - `./leads/[YYYY-MM-DD]-[icp-slug].csv` (main output)
@@ -316,6 +408,7 @@ Total wall-clock for 50 rows (email-first, B2B mix): ~10-15 min. For 200 rows: ~
 - **`/ccmb-email-nurture` (S5)** — downstream. Reads the ranked CSV, drafts source-aware outreach for top-N rows.
 - **`/ccmb-headline-writer`** — orthogonal but useful. Generate outreach subject lines for top-ranked prospects in batch.
 - **`/skyscraper`** — invoked automatically when the ICP archetype doesn't match any default or custom cascade playbook. Scouts return ranked existing patterns; the skill synthesizes a one-time playbook for the novel archetype. Optional — skill falls back to `generic-fallback` if `ccmb-skyscraper` isn't installed. See §5 "Chaining with /skyscraper."
+- **`dev-browser` skill / `claude-in-chrome` MCP / `computer-use` MCP** — browser-use escalation per §6.7. Fires only when WebFetch returns skeleton HTML on a browser-use-eligible source. Picks the first available tool in that priority order. Graceful skip if none installed — cascade continues with `failure_reason: js_heavy_page_no_browser_tool` on affected rows. **No browser tool is required** for cohort 1; the cascade still works on the ~85% of rows that don't need JS rendering.
 - **`/research:youtube`** — for the `creator-thought-leader` playbook, the cascade **does not auto-dispatch** this command. `/research:youtube` is designed for human invocation (writes transcript files to disk, requires a multi-step synthesis pass) and dispatching it mid-cascade would block the run for 5-10 min per row. Instead:
   - **The cascade writes a follow-up file at `./leads/enrichment-followup-[date].md`** listing rows that would benefit from deep YouTube transcript analysis (high-value rows where the routine WebSearch + WebFetch YT discovery returned channel-URL signal but not content-depth signal).
   - **The student manually runs `/research:youtube channel:@handle` after the cascade finishes** on the rows they actually want to deep-dive. ~5-10 min per dispatch, batched at the end, not blocking the cascade.

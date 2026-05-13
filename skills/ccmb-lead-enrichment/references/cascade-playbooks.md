@@ -4,6 +4,8 @@ Each playbook = ICP shape → ordered list of public sources to consult. Skill p
 
 **Universal rule:** every playbook starts with the cheapest/fastest source and escalates. No playbook ever scrapes LinkedIn directly — when an LI URL is encountered, it's noted in the output CSV but not crawled.
 
+**Browser-use escalation marker:** sources marked with **🌐** below are JS-rendered enough that WebFetch may return skeleton HTML. The cascade automatically escalates to browser-use (`dev-browser` / `claude-in-chrome` MCP / `computer-use` MCP — first available) when this happens, per SKILL.md §6.7. No marker = WebFetch is reliable.
+
 ---
 
 ## Playbook 1 — `developer-founder`
@@ -44,15 +46,17 @@ Each playbook = ICP shape → ordered list of public sources to consult. Skill p
 
 **Source order:**
 
-1. **Company About page** (WebFetch)
+1. **Company About page** (WebFetch) **🌐**
    - **Try to resolve from:** the row's company URL field, OR `{company}.com/about`, `{company}.io/about`, OR WebSearch "{company} about"
    - **Returns:** team list, founder bios, headcount signals, funding mentions, product positioning
    - **Signal weight:** highest — most B2B SaaS founders have curated About pages
+   - **Browser-use note:** ~30% of modern SaaS About pages are SPA-rendered (Vercel/Next.js with client-side rendering, framer.com, Webflow with JS). Cascade auto-escalates to browser-use when WebFetch returns skeleton.
 
-2. **Crunchbase public profile** (WebFetch)
+2. **Crunchbase public profile** (WebFetch) **🌐**
    - **Try:** `crunchbase.com/organization/{company-slug}` (public-tier data only — no API key needed for the public landing)
    - **Returns:** funding stage, founding year, public investor names, headcount band
    - **Signal weight:** high — fundamental firmographic data
+   - **Browser-use note:** Crunchbase public pages are JS-rendered. Browser-use works ~60% of time; rate-limits hard after 5-10 requests (skill detects + backs off).
 
 3. **Company blog + recent posts** (WebFetch)
    - **Try:** `{company}.com/blog`, `{company}.io/blog`
@@ -85,11 +89,12 @@ Each playbook = ICP shape → ordered list of public sources to consult. Skill p
    - **Returns:** their pitch, audience size if listed, what they cover, recent essays
    - **Signal weight:** highest — creators curate this surface
 
-2. **YouTube discovery (no API key)** — WebSearch + WebFetch
+2. **YouTube discovery (no API key)** — WebSearch + WebFetch **🌐**
    - **Try:** WebSearch "{name} youtube channel" → extract channel URL from snippet → WebFetch the channel page → parse subscriber count + recent video titles from public DOM
    - **Returns:** channel URL, approximate subscriber count, 3-5 recent video titles, channel description
    - **Signal weight:** high — quantifies audience reach without requiring student to register a Google Cloud API key
-   - **Deep dive (optional, only when explicitly requested):** for top-N rows where the student wants transcript-level analysis, dispatch `/research:youtube` with the channel handle. That skill fetches transcripts and generates a competitive-analysis synthesis. Heavyweight, ~5-10 min per channel. Not per-row default.
+   - **Browser-use note:** YouTube channel pages are heavily JS-rendered (subscriber counts especially). WebFetch returns skeleton ~40-50% of the time. Browser-use escalation works ~70% of those cases. Static fallback: Social Blade public pages (e.g., `socialblade.com/youtube/c/{handle}`) which serve pre-rendered stats with no auth — cascade tries this if browser-use also fails.
+   - **Deep dive (optional, only when explicitly requested via follow-up file):** for top-N rows where the student wants transcript-level analysis, the cascade writes `enrichment-followup-[date].md` listing the channels worth a manual `/research:youtube channel:@handle` dispatch. Per SKILL.md §10, the cascade itself does NOT auto-dispatch `/research:youtube` — it's a human-interactive command and would block the run.
 
 3. **Twitter/X profile** (WebSearch + WebFetch)
    - **Why high here:** for creators, X bio is the canonical self-positioning
