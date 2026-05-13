@@ -2,20 +2,35 @@
 
 All notable changes to the CCMB Marketplace.
 
-## [0.3.0] — 2026-05-13
+## [0.3.1] — 2026-05-13
 
-S4 lead enrichment — no-vendor-lock-in alternative to Apollo. Waterfall scraping/lookup across free public sources (WebSearch + GitHub + public APIs + About pages), ICP-tuned via playbook library.
+Cascade rename + skyscraper chaining + YouTube simplification.
+
+### Changed
+- **Renamed waterfall → cascade** across the enrichment skill. "Waterfall" is Clay-branded vocabulary; "cascade" is more distinctive and doesn't imply imitation. `references/waterfall-playbooks.md` → `references/cascade-playbooks.md` (git mv preserves history). Both "cascade enrichment" and "waterfall enrichment" remain trigger phrases so students using either word still hit the skill.
+- **YouTube source mechanism changed.** Dropped the `YOUTUBE_API_KEY` requirement from the `creator-thought-leader` playbook. Replaced with WebSearch + WebFetch on the channel page for routine discovery (no API key, no setup friction). For deep transcript-level analysis on high-value rows, dispatches to `/research:youtube` (the existing competitor-research command) — only on explicit request, not per-row default.
 
 ### Added
-- `skills/ccmb-lead-enrichment/SKILL.md` — takes existing list (CSV/paste/LI export), enriches each row by waterfalling public sources, scores against ICP, outputs ranked CSV. Same downstream contract as v2 S4 spec — `lib/lead-research.ts` scoring engine unchanged.
-- `skills/ccmb-lead-enrichment/references/waterfall-playbooks.md` — 5 default ICP playbooks (developer-founder, b2b-saas-founder, creator-thought-leader, service-provider-consultant, generic-fallback). Each = ICP keyword triggers → ordered source list. Power users add custom playbooks at `~/.ccmb-lp/playbooks/`.
-- `skills/ccmb-lead-enrichment/references/parsing-rules.md` — handles 6 input formats: CSV w/ headers, markdown table, LinkedIn Connections export, plain comma-separated paste, prose paste (LLM-extracted), names-only paste. Normalizes to internal `RawProspect` shape before waterfall.
+- **`/skyscraper` chaining for novel archetypes.** When ICP doesn't match any default or custom playbook with confidence, enrichment skill offers to dispatch `/skyscraper "enrichment sources for [novel ICP shape]"`. Skyscraper's 4 scouts return ranked existing patterns; enrichment skill synthesizes a one-time custom playbook from the report and optionally saves to `~/.ccmb-lp/playbooks/`. Composition is optional — falls back to `generic-fallback` if `ccmb-skyscraper` isn't installed.
+- New section in `cascade-playbooks.md`: "When the ICP archetype is genuinely novel — chain with `/skyscraper`" with example novel archetypes (Substack climate writers, indie iOS devs, local realtors, veterinary practice owners).
+
+### Architecture note
+The skyscraper chaining is the codify loop applied to cascade authoring itself: when an unknown ICP archetype appears, don't vibe-code a new playbook — scan for existing patterns first. Same meta-skill pattern your skyscraper plugin embodies for general marketing problems.
+
+## [0.3.0] — 2026-05-13
+
+S4 lead enrichment — no-vendor-lock-in alternative to Apollo. Cascade scraping/lookup across free public sources (WebSearch + GitHub + public APIs + About pages), ICP-tuned via playbook library.
+
+### Added
+- `skills/ccmb-lead-enrichment/SKILL.md` — takes existing list (CSV/paste/LI export), enriches each row by cascading public sources, scores against ICP, outputs ranked CSV. Same downstream contract as v2 S4 spec — `lib/lead-research.ts` scoring engine unchanged.
+- `skills/ccmb-lead-enrichment/references/cascade-playbooks.md` — 5 default ICP playbooks (developer-founder, b2b-saas-founder, creator-thought-leader, service-provider-consultant, generic-fallback). Each = ICP keyword triggers → ordered source list. Power users add custom playbooks at `~/.ccmb-lp/playbooks/`.
+- `skills/ccmb-lead-enrichment/references/parsing-rules.md` — handles 6 input formats: CSV w/ headers, markdown table, LinkedIn Connections export, plain comma-separated paste, prose paste (LLM-extracted), names-only paste. Normalizes to internal `RawProspect` shape before cascade.
 
 ### Architecture notes
 - **Tier 1 only for cohort 1.** Tier 2 (Cloudflare Worker browser-rendering proxy) and Tier 3 (Apify Store actors) documented as post-cohort upgrade paths but not shipped.
 - **No LinkedIn scraping ever.** When LI URL is encountered, written to output for manual click-through; never crawled. TOS-clean, ban-risk-minimal.
 - **No third-party transmission of student lists.** Skill calls public sources for individual lookups only; never bulk-submits to any external service.
-- **ICP-aware waterfall** — when student pivots offer, re-run against same list, get a completely different ranking from completely different signals. The list compounds across pivots.
+- **ICP-aware cascade** — when student pivots offer, re-run against same list, get a completely different ranking from completely different signals. The list compounds across pivots.
 
 ### Replaces
 - The Apollo OAuth path from v2 S4 spec (now stale — see `~/.claude/projects/-Users-heymitch-speakeasy-agent/memory/feedback-ccmb-s4-enrichment-not-apollo.md`).

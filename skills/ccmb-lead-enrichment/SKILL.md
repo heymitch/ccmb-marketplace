@@ -1,22 +1,22 @@
 ---
 name: ccmb-lead-enrichment
-description: Waterfall enrichment for an existing list of leads — takes a CSV/paste of names+companies+URLs, queries free public sources (web search, GitHub, public APIs, About pages) in ICP-tuned order, and outputs a ranked CSV with rationale per row. No Apollo, no Clay subscription, no external connector. Use when the student has a list and needs to rank/qualify it against their current offer. Triggers — "/ccmb-lead-enrichment", "enrich my list", "score my leads", "waterfall enrichment", "rank my prospects", "qualify this list", "who should I reach out to first".
+description: Cascade enrichment for an existing list of leads — takes a CSV/paste of names+companies+URLs, queries free public sources (web search, GitHub, public APIs, About pages) in ICP-tuned order, and outputs a ranked CSV with rationale per row. Chains with /skyscraper when ICP shape is novel and no default cascade playbook fits. No Apollo, no Clay subscription, no external connector. Use when the student has a list and needs to rank/qualify it against their current offer. Triggers — "/ccmb-lead-enrichment", "enrich my list", "score my leads", "cascade enrichment", "waterfall enrichment", "rank my prospects", "qualify this list", "who should I reach out to first".
 ---
 
 # CCMB Lead Enrichment
 
 ## 1. What this skill does
 
-Takes your existing list of people — past clients, LinkedIn export, podcast guests, anyone you already know exists — and **enriches each row by waterfalling across free public sources** until enough data is collected to score the row against your current ICP. Output is a ranked CSV with rationale, ready for the S5 outreach pipeline.
+Takes your existing list of people — past clients, LinkedIn export, podcast guests, anyone you already know exists — and **enriches each row by cascading across free public sources** until enough data is collected to score the row against your current ICP. Output is a ranked CSV with rationale, ready for the S5 outreach pipeline.
 
-**The architectural move:** waterfall sources are picked per ICP, not fixed. A developer-founder ICP queries GitHub + Twitter + personal blog. A B2B-SaaS-founder ICP queries company About + Crunchbase public + podcast appearances. **When your offer changes, re-run this skill against the same list — you get a completely different ranking from completely different signals.** The list compounds across pivots.
+**The architectural move:** cascade sources are picked per ICP, not fixed. A developer-founder ICP queries GitHub + Twitter + personal blog. A B2B-SaaS-founder ICP queries company About + Crunchbase public + podcast appearances. **When your offer changes, re-run this skill against the same list — you get a completely different ranking from completely different signals.** The list compounds across pivots.
 
 **What it is, plainly:** scraping + lookup, run on your local machine, with output saved to your local `leads/` folder. Read-only. Personal qualification use. Your account, your risk, your list — no redistribution.
 
 ## 2. When to invoke
 
 - Anytime you have 20+ names you want to rank by ICP fit.
-- After pivoting your offer (re-run against your existing client list — different ICP, different waterfall, different ranking).
+- After pivoting your offer (re-run against your existing client list — different ICP, different cascade, different ranking).
 - Monthly habit: take last month's LinkedIn-new-connections export, enrich, identify the 5 worth a conversation.
 - Before any cold outreach session — feeds S5 (`/ccmb-email-nurture`) with the ranked prospects.
 
@@ -53,13 +53,13 @@ Minimum 20 rows. Recommended 50-200 for meaningful pass.
 - Already produced by `/ccmb-icp-translator` (preferred, structured)
 - Or written inline in 1-3 sentences when the skill asks ("solo marketing consultants doing $5-15K/mo who haven't productized yet, US-based, post-pivot from agency work")
 
-ICP determines the waterfall (see §5). Vague ICP = useless ranking.
+ICP determines the cascade (see §5). Vague ICP = useless ranking.
 
 **3. Depth cap (optional)** — per-row time budget. Default 60 seconds. Higher = richer signal but slower runs. A 50-row list at default = ~10-15 min total.
 
-## 5. The waterfall — how source selection works
+## 5. The cascade — how source selection works
 
-The skill ships with a **playbook library** at `references/waterfall-playbooks.md`. Each playbook = ICP shape → ordered source list. The translator step in §7 picks the closest playbook to your ICP and runs it.
+The skill ships with a **playbook library** at `references/cascade-playbooks.md`. Each playbook = ICP shape → ordered source list. The translator step in §7 picks the closest playbook to your ICP and runs it.
 
 ### The 5 default playbooks (cohort 1)
 
@@ -76,11 +76,34 @@ Each source returns a partial-data row. The skill **accumulates fields across so
 - Per-row time budget exhausted, OR
 - All playbook sources tried
 
-This is the waterfall behavior. Per-row data accumulates; the skill doesn't pick a winner from one source.
+This is the cascade behavior. Per-row data accumulates; the skill doesn't pick a winner from one source.
 
 ### Custom playbooks
 
 Power users can add playbooks to `~/.ccmb-lp/playbooks/` (or per-folder at `./.ccmb-lp/playbooks/`). Skill checks user-defined playbooks first, falls back to bundled defaults.
+
+### Chaining with `/skyscraper` for novel archetypes
+
+When no default or custom playbook matches the ICP with confidence — the ICP archetype is genuinely novel for this student's business — the skill **does not silently fall through to `generic-fallback`.** Instead, it offers to chain with `/skyscraper`:
+
+```
+I don't have a playbook that fits your ICP — "[novel ICP shape]" doesn't match any of:
+  developer-founder, b2b-saas-founder, creator-thought-leader,
+  service-provider-consultant, generic-fallback.
+
+Run /skyscraper to scan existing enrichment patterns for this archetype before I
+build a custom playbook from scratch? (~30 sec, returns ranked sources to consult)
+
+  [yes, run skyscraper]    [no, use generic-fallback]    [I'll write a custom playbook myself]
+```
+
+**On `yes`:** the skill dispatches `/skyscraper "enrichment sources for [ICP shape]"`. Skyscraper's 4 scouts (Reddit, YouTube, Apify, Docs) run in parallel, return a ranked report of existing patterns + tools + sources for this archetype. The enrichment skill synthesizes a one-time custom playbook from the report, runs the cascade, and offers to save the synthesized playbook to `~/.ccmb-lp/playbooks/` for reuse.
+
+**Why this exists:** the codify loop applied to cascade authoring. When you encounter a novel ICP, don't vibe-code a new playbook — scan for existing patterns first. Often someone has already worked out which sources matter for "podcast hosts" or "Substack writers" or "indie iOS developers," and skyscraper finds that work.
+
+**Composition requirement:** student must have the `ccmb-skyscraper` plugin installed. If not, skill skips the offer and uses `generic-fallback`. Doesn't error.
+
+**Budget impact:** skyscraper uses its own daily budget (default $0.50/day via `SKYSCRAPER_BUDGET_USD` env var). Enrichment doesn't double-count.
 
 ## 6. Source registry (Tier 1, free)
 
@@ -92,7 +115,7 @@ The actual mechanisms the skill calls. All free, all read-only, all public-data-
 | **WebFetch** | Claude Code built-in `WebFetch` tool | Fetches a known URL, returns parsed text. Used to read About pages, blog posts, profile pages |
 | **GitHub Public API** | HTTP GET `api.github.com/users/{username}` | Bio, company, blog URL, twitter handle, public repo count, recent activity. **No auth required for public data** at 60 req/hr — plenty for cohort scale |
 | **Reddit Public API** | HTTP GET `reddit.com/user/{username}/.json` | Bio, karma, recent posts, top subreddits. No auth required, generous rate limits |
-| **YouTube Data API** | HTTPS via Google API key (free tier 10K req/day) | Channel info, subscriber count, recent uploads, descriptions. Requires student to add their own API key |
+| **YouTube discovery** | WebSearch + WebFetch on channel pages | Channel URL, subscriber count from public search snippets, recent video titles from channel page. **No API key needed.** For deep transcript-level analysis on high-value rows, dispatches to `/research:youtube` (the existing competitor-research skill) — only fires when explicitly requested, not per-row |
 | **Companies House (UK)** | Public REST API, free | UK company directors, registered addresses, filing history |
 | **SEC EDGAR (US)** | Public REST API, free | US public company filings, executive names |
 | **Public RSS feeds** | Fetch and parse | Newsletter/blog content for "what they write about" signal |
@@ -112,9 +135,11 @@ The actual mechanisms the skill calls. All free, all read-only, all public-data-
 1. **Detect input.** Read the user's pasted/uploaded list. Parse via `references/parsing-rules.md` — handles CSV, markdown table, LI export, plain paste. If parse fails, ask the user to paste 1-2 example rows in a different format.
 2. **Confirm the list.** Print row count + first 3 examples. Ask: "I see N rows, first one is '[name] at [company]'. Proceed?"
 3. **Get the ICP.** Check for `~/.ccmb-lp/icp.json` (from `/ccmb-icp-translator`). If absent, ask inline: "Describe your ICP in 1-3 sentences." Run a quick translator-style prompt to extract required signals + weights + exclude rules.
-4. **Pick the playbook.** Match ICP to one of the 5 default playbooks (§5). Print: "Using [playbook-name] playbook because your ICP mentions [keyword]. Want to override?"
+4. **Pick the playbook.** Match ICP to one of the 5 default playbooks (§5).
+   - **High-confidence match** (≥2 keyword hits in one playbook): print "Using [playbook-name] playbook because your ICP mentions [keywords]. Want to override?" and proceed.
+   - **No confident match** (novel archetype): offer `/skyscraper` chain per §5. On `yes`, dispatch skyscraper, synthesize a custom playbook from the report, ask user to confirm before running. On `no`, fall back to `generic-fallback` with a heads-up that confidence will be lower.
 5. **Confirm depth cap.** Default 60 sec/row. Print estimated total time. If list > 100 rows, suggest 30 sec/row for batch speed.
-6. **Run the waterfall per row.** For each row:
+6. **Run the cascade per row.** For each row:
    - Run playbook sources in order
    - Accumulate fields across sources
    - Stop early if all ICP-required signals matched
@@ -159,6 +184,8 @@ Total wall-clock for 50 rows: ~10-15 min. For 200 rows: ~30-50 min.
 - **`/ccmb-icp-translator`** — upstream. If present, this skill reads its output. If absent, the inline interview substitutes.
 - **`/ccmb-email-nurture` (S5)** — downstream. Reads the ranked CSV, drafts source-aware outreach for top-N rows.
 - **`/ccmb-headline-writer`** — orthogonal but useful. Generate outreach subject lines for top-ranked prospects in batch.
+- **`/skyscraper`** — invoked automatically when the ICP archetype doesn't match any default or custom cascade playbook. Scouts return ranked existing patterns; the skill synthesizes a one-time playbook for the novel archetype. Optional — skill falls back to `generic-fallback` if `ccmb-skyscraper` isn't installed. See §5 "Chaining with /skyscraper."
+- **`/research:youtube`** — for the `creator-thought-leader` playbook, dispatched **only when explicitly requested** on a high-value row (not per-row default). Returns deep transcript-level analysis of a creator's content. Lives in `~/.claude/commands/research/youtube.md`. The cascade itself uses lighter WebSearch + WebFetch for routine YouTube discovery.
 - **The scoring engine `lib/lead-research.ts`** — unchanged from the v2 spec. This skill produces input for it; the engine produces the ranking output. Same contract.
 
 ## 11. The cohort 2+ roadmap (not shipping in v1)

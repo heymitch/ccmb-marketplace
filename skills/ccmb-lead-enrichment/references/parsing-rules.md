@@ -1,6 +1,6 @@
 # Parsing Rules — How the skill handles messy input
 
-The skill accepts any reasonable list format and parses it into a normalized internal shape before running the waterfall. These rules cover the formats encountered in real cohort runs.
+The skill accepts any reasonable list format and parses it into a normalized internal shape before running the cascade. These rules cover the formats encountered in real cohort runs.
 
 **Normalized internal shape:**
 
@@ -16,7 +16,7 @@ type RawProspect = {
 }
 ```
 
-The waterfall enriches `RawProspect[]` into the fuller scoring shape downstream.
+The cascade enriches `RawProspect[]` into the fuller scoring shape downstream.
 
 ---
 
@@ -125,7 +125,7 @@ Maria Lopez
 **Parsing:**
 - Each line = one `full_name` with all other fields empty
 - Waterfall must work harder per row — no company hint, no role hint
-- Skill warns: "Names-only input means the waterfall has less starting context. Expect ~30% more enrichment time per row and lower confidence in matches."
+- Skill warns: "Names-only input means the cascade has less starting context. Expect ~30% more enrichment time per row and lower confidence in matches."
 
 If a name is ambiguous ("John Smith"), the skill flags the row with `enrichment_confidence: low` regardless of what it finds.
 
@@ -133,7 +133,7 @@ If a name is ambiguous ("John Smith"), the skill flags the row with `enrichment_
 
 ## Handling duplicates
 
-After parse, before waterfall:
+After parse, before cascade:
 
 1. Group rows by `(full_name.toLowerCase(), company?.toLowerCase())`.
 2. Within group: merge fields (non-empty wins). Keep one row.

@@ -1,4 +1,4 @@
-# Waterfall Playbooks
+# Cascade Playbooks
 
 Each playbook = ICP shape → ordered list of public sources to consult. Skill picks one playbook per run based on ICP keywords; sources run in order until enough signals are matched OR per-row timeout fires.
 
@@ -85,11 +85,11 @@ Each playbook = ICP shape → ordered list of public sources to consult. Skill p
    - **Returns:** their pitch, audience size if listed, what they cover, recent essays
    - **Signal weight:** highest — creators curate this surface
 
-2. **YouTube Data API** (student-supplied key, free tier)
-   - **Try:** channel handle lookup, channel ID resolution from search
-   - **Returns:** subscriber count, total views, recent uploads, channel description
-   - **Signal weight:** high — quantifies audience reach
-   - **Setup:** student needs to add `YOUTUBE_API_KEY` env var. Free tier (10K req/day) is plenty for cohort scale.
+2. **YouTube discovery (no API key)** — WebSearch + WebFetch
+   - **Try:** WebSearch "{name} youtube channel" → extract channel URL from snippet → WebFetch the channel page → parse subscriber count + recent video titles from public DOM
+   - **Returns:** channel URL, approximate subscriber count, 3-5 recent video titles, channel description
+   - **Signal weight:** high — quantifies audience reach without requiring student to register a Google Cloud API key
+   - **Deep dive (optional, only when explicitly requested):** for top-N rows where the student wants transcript-level analysis, dispatch `/research:youtube` with the channel handle. That skill fetches transcripts and generates a competitive-analysis synthesis. Heavyweight, ~5-10 min per channel. Not per-row default.
 
 3. **Twitter/X profile** (WebSearch + WebFetch)
    - **Why high here:** for creators, X bio is the canonical self-positioning
@@ -205,3 +205,35 @@ Skill reads user playbooks FIRST, falls back to bundled defaults. Triggers match
 | You're enriching the same ICP shape monthly | Custom playbook saves you re-running the picker each time |
 
 The playbook is the cheapest part of the skill to customize. Write three playbooks for your three offers, swap them as you pivot. Same skill, same engine, different output per offer.
+
+---
+
+## When the ICP archetype is genuinely novel — chain with `/skyscraper`
+
+If you can't find a default playbook that fits AND you don't want to write a custom one from scratch, the enrichment skill chains with `/skyscraper` (when installed). The trigger is automatic: when no default or custom playbook hits ≥2 keyword matches, the skill offers the chain rather than silently using `generic-fallback`.
+
+**What skyscraper does in this context:**
+
+1. Receives the query `enrichment sources for [novel ICP shape]`
+2. Dispatches 4 scouts in parallel: Reddit, YouTube, Apify Store, Docs
+3. Returns a ranked report of existing patterns + tools + sources used by people who have already worked out enrichment for similar archetypes
+4. Enrichment skill synthesizes a one-time custom playbook from the report
+5. Optionally saves the playbook to `~/.ccmb-lp/playbooks/` for reuse
+
+**Example novel archetypes that benefit from this:**
+
+- "Substack writers with paid subscribers in the climate-tech niche"
+- "Indie iOS developers who ship one app per year"
+- "Local-market real estate agents who use video in their listings"
+- "Veterinary practice owners running 2-3 clinics"
+
+For these, no default playbook covers the right source order. Skyscraper might surface:
+
+- A Reddit thread where a marketer documented their Substack-discovery workflow (→ specific Substack search patterns to try)
+- A YouTube video on Indie Hackers about indie iOS dev discovery (→ which directories/communities to query)
+- An Apify actor for scraping real estate listing portals (→ if student wants Tier 3 paid path later)
+- Documentation on a public API for state-level veterinary licensing boards (→ rare but exists)
+
+The codify loop: when you encounter an unknown archetype, scan before vibe-coding. Skyscraper IS the scan. The synthesized playbook IS the codification.
+
+**If `ccmb-skyscraper` isn't installed:** skill falls back to `generic-fallback` and prints a hint: "Install `ccmb-skyscraper` to get smarter source selection for novel ICPs."

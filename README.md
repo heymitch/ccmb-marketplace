@@ -24,8 +24,9 @@ skills/
   ccmb-lp-build/SKILL.md           ← step 3: scaffold + deploy (orchestrator, auto-chains)
 
   # S4 lead enrichment (replaces Apollo dependency — no vendor lock-in)
-  ccmb-lead-enrichment/SKILL.md    ← waterfall enrichment for existing lists, Tier 1 free sources only
-    references/                    ← bundled — waterfall-playbooks (5 default ICP shapes), parsing-rules
+  ccmb-lead-enrichment/SKILL.md    ← cascade enrichment for existing lists, Tier 1 free sources only
+                                     chains with /skyscraper for novel ICP archetypes
+    references/                    ← bundled — cascade-playbooks (5 default ICP shapes), parsing-rules
 
   # Bonus packages (multi-skill plugins, installed as directories)
   ccmb-safe-install/               ← npm/CLI install shield, reads campaign-status.json
