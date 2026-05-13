@@ -2,6 +2,24 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [0.3.0] — 2026-05-13
+
+S4 lead enrichment — no-vendor-lock-in alternative to Apollo. Waterfall scraping/lookup across free public sources (WebSearch + GitHub + public APIs + About pages), ICP-tuned via playbook library.
+
+### Added
+- `skills/ccmb-lead-enrichment/SKILL.md` — takes existing list (CSV/paste/LI export), enriches each row by waterfalling public sources, scores against ICP, outputs ranked CSV. Same downstream contract as v2 S4 spec — `lib/lead-research.ts` scoring engine unchanged.
+- `skills/ccmb-lead-enrichment/references/waterfall-playbooks.md` — 5 default ICP playbooks (developer-founder, b2b-saas-founder, creator-thought-leader, service-provider-consultant, generic-fallback). Each = ICP keyword triggers → ordered source list. Power users add custom playbooks at `~/.ccmb-lp/playbooks/`.
+- `skills/ccmb-lead-enrichment/references/parsing-rules.md` — handles 6 input formats: CSV w/ headers, markdown table, LinkedIn Connections export, plain comma-separated paste, prose paste (LLM-extracted), names-only paste. Normalizes to internal `RawProspect` shape before waterfall.
+
+### Architecture notes
+- **Tier 1 only for cohort 1.** Tier 2 (Cloudflare Worker browser-rendering proxy) and Tier 3 (Apify Store actors) documented as post-cohort upgrade paths but not shipped.
+- **No LinkedIn scraping ever.** When LI URL is encountered, written to output for manual click-through; never crawled. TOS-clean, ban-risk-minimal.
+- **No third-party transmission of student lists.** Skill calls public sources for individual lookups only; never bulk-submits to any external service.
+- **ICP-aware waterfall** — when student pivots offer, re-run against same list, get a completely different ranking from completely different signals. The list compounds across pivots.
+
+### Replaces
+- The Apollo OAuth path from v2 S4 spec (now stale — see `~/.claude/projects/-Users-heymitch-speakeasy-agent/memory/feedback-ccmb-s4-enrichment-not-apollo.md`).
+
 ## [0.2.0] — 2026-05-13
 
 LP factory stack — three-skill split-architecture for reusable design across pages.
