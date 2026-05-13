@@ -2,6 +2,35 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [0.3.2] — 2026-05-13
+
+Three critical fixes from cold dry-run + email-list-first input surface.
+
+### Critical fixes (from stress-test against "vintage typewriter restorers under 40 in Portland")
+
+- **Signal enrichability audit (§4.5 of SKILL.md).** Before any source is queried, the skill now classifies each ICP signal as ENRICHABLE / INFERRABLE / UNENRICHABLE. Unenrichable signals (exact age, exact revenue, decision-authority) are explicitly flagged and dropped from scoring with user confirmation. **Prevents the worst silent failure mode** — student writes "under 40" in ICP, scoring engine has no data path, every row gets default value, student thinks they filtered when they didn't. Now: loud failure, user choice to drop the signal or rewrite the ICP.
+- **Tighter playbook matching algorithm (§5).** Old spec was ambiguous on "≥2 keyword hits" — could silently use the wrong playbook on a single weak match (e.g., `service-provider-consultant` falsely matching "restorer"). New spec: cluster-based confidence (high ≥3, medium 2, low 1, none 0), ties trigger user disambiguation, low/none confidence offers skyscraper chain or fallback-with-warning. No more silent wrong-playbook runs.
+- **`/research:youtube` composition pinned (§10).** The cascade no longer attempts to auto-dispatch the YouTube research command — it's a human-interactive command, blocks 5-10 min per dispatch. New behavior: cascade writes `leads/enrichment-followup-[date].md` listing high-value rows that would benefit from manual `/research:youtube` deep-dives, with the exact commands to run. Student dispatches after the cascade finishes, batched. Programmatic auto-dispatch deferred to cohort 2+ (would require refactoring `/research:youtube`).
+
+### Added — email-list-first input surface
+
+- **New §6.5: Email-first cascade.** When >50% of rows are email-shaped with missing name/company, the skill runs a 4-step pre-cascade: split `handle@domain`, resolve domain → company via About-page WebFetch, resolve handle → name via team-page cross-reference or WebSearch, hand off to playbook cascade with pre-populated identity. Personal email domains (gmail/yahoo/etc.) get a separate fallback path with handle analysis + direct WebSearch.
+- **Apollo/ListKit/Cognism CSV imports recognized as legacy enriched data.** When detected by header pattern, the cascade *skips resolution steps* the CSV already answers and only enriches missing signals. **Migration story:** student kept their old Apollo export, cancelled the subscription, the skill works with what they already own. No vendor lock-in.
+- **ESP subscriber exports (Kit/Mailchimp/MailerLite/ConvertKit) auto-detected** with tag + segmentation metadata preserved as intent signals.
+- **S1/S2 funnel data importable** — student's own `/api/lead` captures and landing page submissions feed directly into enrichment as warm-lead inputs.
+- **5 new formats documented in `parsing-rules.md`**: email-only, ESP exports, Apollo CSVs, ListKit/Cognism/Lusha CSVs, S1/S2 funnel data.
+
+### Output schema changes
+
+- New `failure_reason` column in main CSV (e.g., `name_too_common_no_business_anchor`, `email_domain_returned_no_about_page`, `rate_limited_mid_cascade:github`). Low-confidence rows now explain *why* without re-running.
+- New optional output file: `leads/enrichment-followup-[date].md` — manual deep-dive commands for rows worth heavyweight follow-up.
+
+### Architecture notes
+
+- Execution flow expanded from 10 → 12 steps to fold in the audit (step 5) and email-first pre-cascade (step 8).
+- Cascade now favors email-as-primary-key over name-as-primary-key for B2B rows, because email domain = company is the strongest possible firmographic signal available before any source is queried.
+- Critical principle reinforced: **loud failure beats silent silent-default**. Every step that could fail silently now either prints a warning, asks user confirmation, or writes a `failure_reason` to the output.
+
 ## [0.3.1] — 2026-05-13
 
 Cascade rename + skyscraper chaining + YouTube simplification.

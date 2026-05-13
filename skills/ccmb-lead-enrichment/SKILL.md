@@ -34,7 +34,10 @@ top_signal, rationale_summary, sources_used, public_urls, enrichment_confidence
 Plus:
 - **Top 5 printed to stdout** for immediate human-eyeball review
 - **`leads/enrichment-log.md`** appended with run metadata (date, ICP used, source coverage, time spent)
+- **`leads/enrichment-followup-[date].md`** (when relevant) — rows that would benefit from manual `/research:youtube` deep-dive or other heavyweight follow-ups, with the exact command to run for each
 - **Home page auto-update** if S1 is shipped — Dogfood spec-grid reads `leads/` and reflects new count on next build
+
+Output CSV now includes a `failure_reason` column for low-confidence rows (e.g., `name_too_common_no_business_anchor`, `email_domain_returned_no_about_page`, `rate_limited_mid_cascade:github`). Lets the student see *why* a row scored 0 without re-running the cascade.
 
 The CSV slots into the same scoring engine `lib/lead-research.ts` ships with S4. Same downstream contract. S5 reads `leads/cohort-*.csv` for outreach drafting.
 
@@ -42,12 +45,19 @@ The CSV slots into the same scoring engine `lib/lead-research.ts` ships with S4.
 
 **1. Your list** — any reasonable format. Skill auto-detects:
 - CSV with headers (name, company, url, etc.)
+- **Email lists** (just emails, one per line — handled via email-first cascade, see §6.5)
 - Pasted lines ("Sarah Chen, Acme Inc, sarah@acme.com")
 - Markdown table
 - Plain unstructured paste ("Sarah Chen runs Acme. Bob Johnson is at Foo Corp.")
 - LinkedIn Connections export CSV (the skill knows the LI export shape)
+- **Apollo / ListKit / Cognism CSV exports** (legacy data the student already owns — works without an active subscription)
+- **ESP subscriber exports** (Kit/ConvertKit/Mailchimp/MailerLite CSV downloads — usually email-primary)
+- **Lead magnet capture data** (rows from your own `/api/lead` endpoint, S2 output)
+- **Landing page form submissions** (any form export from S1 funnels)
 
 Minimum 20 rows. Recommended 50-200 for meaningful pass.
+
+**Most common cohort 1 case:** the student brings an email list — either from their own ESP (lead magnets + landing page captures from S1-S2) or from a legacy Apollo/ListKit subscription they cancelled but kept the data from. The cascade treats this case specially (§6.5) — email is *more structured* than a name, so the resolution flow starts from a different surface.
 
 **2. Your ICP** — either:
 - Already produced by `/ccmb-icp-translator` (preferred, structured)
@@ -57,9 +67,76 @@ ICP determines the cascade (see §5). Vague ICP = useless ranking.
 
 **3. Depth cap (optional)** — per-row time budget. Default 60 seconds. Higher = richer signal but slower runs. A 50-row list at default = ~10-15 min total.
 
+## 4.5. Signal enrichability audit (always runs before cascade)
+
+After the ICP is resolved (from `/ccmb-icp-translator` or inline interview), the skill classifies each ICP signal into one of three buckets **before any source is queried**:
+
+| Bucket | Meaning | What happens in cascade |
+|---|---|---|
+| **ENRICHABLE** | A public source can directly answer this signal | Scored normally |
+| **INFERRABLE** | No direct source, but a proxy can estimate (e.g., "founded year" inferred from About-page text or domain WHOIS) | Scored with `inferred:true` flag in CSV |
+| **UNENRICHABLE** | No public source, no reliable proxy, no inference path | **Dropped from scoring with explicit user warning** |
+
+### Common unenrichable signals to watch for
+
+- **Exact age** (e.g., "under 40") — no public source gives reliable age. The skill cannot enrich this. Possible inference: graduation-year from LinkedIn bio (if visible), "founded company at age X" mentions in interviews, BUT these are unreliable for cohort 1.
+- **Exact annual revenue** — privately-held companies don't disclose. Inference proxies (headcount × industry avg) are too noisy for scoring.
+- **Personal demographics** (gender, ethnicity, religion) — neither enrichable nor inferrable from a B2B perspective. The skill refuses to enrich these regardless of student request — both because the data isn't reliable AND because it's a discrimination risk.
+- **Decision-making authority** (e.g., "is the actual buyer") — usually an inference from role title. Title ≠ authority.
+
+### What the skill prints
+
+After classifying, before the cascade runs:
+
+```
+Signal audit for your ICP:
+  ✓ ENRICHABLE: role, company size band, industry, tech stack signals, content signals
+  ⚠️ INFERRABLE: founded year (from About page), team size band (from LinkedIn URL note + Crunchbase public)
+  ✗ UNENRICHABLE: exact age, exact revenue, decision-making authority
+
+Continue with ENRICHABLE + INFERRABLE only? The UNENRICHABLE signals
+will be dropped from scoring — including them silently would mean your
+ranking pretends to filter for something it can't actually filter for.
+
+  [continue, drop unenrichable]    [rewrite ICP without these signals]    [cancel]
+```
+
+**On `continue`:** unenrichable signals are removed from the scoring weight table. The cascade runs only against signals that have a real path to data.
+
+**On `rewrite`:** skill enters a mini-interview asking how to replace each unenrichable signal with an enrichable proxy. ("Instead of 'under 40,' try 'company founded after 2018' — same intent, real signal.")
+
+**Why this exists:** the worst failure mode of any enrichment skill is the silent-fail — scoring engine processes a signal it can't actually source, every row gets the default value, and the student believes they filtered for something they didn't. This audit makes the failure mode loud instead of silent.
+
 ## 5. The cascade — how source selection works
 
 The skill ships with a **playbook library** at `references/cascade-playbooks.md`. Each playbook = ICP shape → ordered source list. The translator step in §7 picks the closest playbook to your ICP and runs it.
+
+### Playbook matching algorithm (precise)
+
+The matcher used to be ambiguous about "≥2 keyword hits." Cohort 1 spec is now:
+
+```
+For each playbook P in library:
+  P.score = count of (P.triggers ∩ ICP.keywords)
+  // P.triggers is the playbook's own trigger keyword list
+  // ICP.keywords is the keyword set extracted from the student's ICP
+
+P.confidence = "high"   if P.score >= 3
+             | "medium" if P.score == 2
+             | "low"    if P.score == 1
+             | "none"   if P.score == 0
+
+If exactly one playbook has confidence >= "medium":
+  Use it. Print: "Using [P.name] playbook (matched: [keywords])."
+
+If multiple playbooks tie at confidence >= "medium":
+  Print all tied options. Ask user to pick. No silent default.
+
+If max confidence is "low" or "none":
+  Offer /skyscraper chain (see "Chaining with /skyscraper" below). Do not silently fall through to generic-fallback.
+```
+
+**The critical change:** a single weak keyword hit ("low" confidence) is no longer enough to silently use a playbook. Real example from the dry-run: ICP "vintage typewriter restorers under 40 in Portland" had a single weak hit on `service-provider-consultant` because "restorer" is service-adjacent. **Under the old rule, this would have silently used the wrong playbook.** Under the new rule, single weak hits trigger skyscraper or fallback-with-warning.
 
 ### The 5 default playbooks (cohort 1)
 
@@ -128,29 +205,83 @@ The actual mechanisms the skill calls. All free, all read-only, all public-data-
 - Email finder APIs (Hunter, Findymail, etc. — paid, separate decision)
 - LinkedIn scraping via any mechanism (legal + reliability risk)
 
+## 6.5. Email-first cascade (the common cohort 1 case)
+
+When the input list is email-primary — students bringing ESP exports, lead magnet captures, landing page submissions, or legacy Apollo/ListKit CSVs — the cascade runs a **pre-resolution step** before the playbook fires.
+
+### The 4-step email-first pre-cascade
+
+For each row with an email but missing name/company/role:
+
+1. **Split email into `handle@domain`.**
+   - `sarah.chen@acme.com` → `handle: sarah.chen`, `domain: acme.com`
+   - `marcus@stripe.com` → `handle: marcus`, `domain: stripe.com`
+   - `bob@gmail.com` → `handle: bob`, `domain: gmail.com` (personal — different path)
+
+2. **Resolve domain to company (B2B path).**
+   - If domain is NOT a personal email provider (gmail/yahoo/hotmail/outlook/icloud/protonmail/etc.):
+     - `WebFetch({domain}/about)` and `WebFetch({domain})` — extract company name, headcount signals, founding year, team page
+     - Store: `company`, `company_url`, `industry_signal`, `founded_year` (if findable)
+   - Confidence: high — email domain = company is the strongest possible firmographic signal
+
+3. **Resolve handle to name (when possible).**
+   - If domain returned a `/team` or `/about` page with people listed: cross-reference handle patterns (`{first.last}`, `{first}`, `{flast}`, `{first}{l}`) against team-page names
+   - Else: `WebSearch "{handle} {company}"` to find a public identity match
+   - Else: skill flags `name_confidence: low` and records the handle as a placeholder name
+
+4. **Hand off to playbook-driven cascade.**
+   - With resolved `(name, company)` from steps 2-3, the normal playbook matcher fires (§5) and the standard cascade runs
+   - Email-first rows get one extra source already populated (the company About page) — the playbook cascade adds the rest
+
+### Personal email domains (gmail/etc.)
+
+When the domain is a personal provider, the B2B resolution path doesn't apply. The skill falls back to:
+
+1. **Handle analysis.** `marcus.chen.dev@gmail.com` → handle suggests "developer" / "code" signal. `sarah.studio@gmail.com` → suggests "creator/maker." These are weak hints, not scoring inputs.
+2. **WebSearch on email directly.** `"marcus.chen.dev@gmail.com"` sometimes surfaces public mentions (GitHub commits, forum profiles, public bios with email listed). Often returns nothing.
+3. **If nothing resolves:** row gets `enrichment_confidence: low` with `failure_reason: personal_email_no_public_footprint`.
+
+Personal-email rows are the hardest case. Most ESP subscriber lists have 20-40% personal emails — students should expect that fraction to score lower regardless of the actual person.
+
+### Legacy Apollo/ListKit imports
+
+These vendor CSVs often have richer columns (`# Employees`, `Industry`, `Annual Revenue`, `Person LinkedIn URL`). When detected:
+- **Pre-populate company + role + size from the CSV** — skip the resolution steps that the CSV already answers
+- **Run playbook cascade only on the *missing* fields** — much faster runs
+- **Treat the imported data as the baseline; only enrich what's missing**
+
+This is the "no vendor lock-in" migration story: the student paid for the data once, they own it forever, the skill enriches what's there without making them re-subscribe.
+
 ## 7. Execution flow
 
-10 steps from "give me your list" to "ranked CSV in your repo."
+12 steps from "give me your list" to "ranked CSV in your repo."
 
-1. **Detect input.** Read the user's pasted/uploaded list. Parse via `references/parsing-rules.md` — handles CSV, markdown table, LI export, plain paste. If parse fails, ask the user to paste 1-2 example rows in a different format.
-2. **Confirm the list.** Print row count + first 3 examples. Ask: "I see N rows, first one is '[name] at [company]'. Proceed?"
-3. **Get the ICP.** Check for `~/.ccmb-lp/icp.json` (from `/ccmb-icp-translator`). If absent, ask inline: "Describe your ICP in 1-3 sentences." Run a quick translator-style prompt to extract required signals + weights + exclude rules.
-4. **Pick the playbook.** Match ICP to one of the 5 default playbooks (§5).
-   - **High-confidence match** (≥2 keyword hits in one playbook): print "Using [playbook-name] playbook because your ICP mentions [keywords]. Want to override?" and proceed.
-   - **No confident match** (novel archetype): offer `/skyscraper` chain per §5. On `yes`, dispatch skyscraper, synthesize a custom playbook from the report, ask user to confirm before running. On `no`, fall back to `generic-fallback` with a heads-up that confidence will be lower.
-5. **Confirm depth cap.** Default 60 sec/row. Print estimated total time. If list > 100 rows, suggest 30 sec/row for batch speed.
-6. **Run the cascade per row.** For each row:
-   - Run playbook sources in order
+1. **Detect input.** Read the user's pasted/uploaded list. Parse via `references/parsing-rules.md` — handles CSV, markdown table, LI export, plain paste, email lists, Apollo/ListKit/Cognism CSVs, ESP exports. If parse fails, ask the user to paste 1-2 example rows in a different format.
+2. **Detect input type.** Specifically check: is this email-primary (most rows have email but missing name/company)? If so, mark for §6.5 email-first pre-cascade.
+3. **Confirm the list.** Print row count + first 3 examples. Ask: "I see N rows, first one is '[email/name] at [company]'. Proceed?"
+4. **Get the ICP.** Check for `~/.ccmb-lp/icp.json` (from `/ccmb-icp-translator`). If absent, ask inline: "Describe your ICP in 1-3 sentences." Run a quick translator-style prompt to extract required signals + weights + exclude rules.
+5. **Run signal enrichability audit (§4.5).** Classify each ICP signal as ENRICHABLE / INFERRABLE / UNENRICHABLE. Print the audit to user. On `continue, drop unenrichable`: remove unenrichable signals from scoring weights. On `rewrite`: enter mini-interview to swap unenrichable signals for proxies. On `cancel`: stop.
+6. **Pick the playbook (§5).** Run the precise matching algorithm.
+   - High-confidence match (score ≥2 in exactly one playbook): use it, confirm with user.
+   - Tied medium-confidence matches: ask user to pick.
+   - Low or no confidence: offer `/skyscraper` chain or `generic-fallback` with warning.
+7. **Confirm depth cap.** Default 60 sec/row. Print estimated total time. If list > 100 rows, suggest 30 sec/row for batch speed.
+8. **Run email-first pre-cascade (§6.5) for email-primary rows.** Resolve domain → company, handle → name (when possible). Personal-email rows get the fallback path. Apollo/ListKit imports skip resolution where data is already present.
+9. **Run the cascade per row.** For each row:
+   - Run playbook sources in order (with pre-resolved company already populated for email-first rows)
    - Accumulate fields across sources
-   - Stop early if all ICP-required signals matched
+   - Stop early if all ENRICHABLE-bucket ICP signals matched
    - Skip remaining sources if per-row timeout hit
    - Log which sources were consulted to `sources_used` column
-7. **Score each row.** Reuse the existing `lib/lead-research.ts` scoring engine — same engine as the v2 spec, unchanged. Outputs `score`, `band` (A/B/C/D), `signals_matched`, `top_signal`, `rationale_summary`.
-8. **Rank + write CSV.** Sort by score descending. Write `./leads/[YYYY-MM-DD]-[icp-slug].csv`. Append metadata to `./leads/enrichment-log.md`.
-9. **Print top 5.** Stdout summary: top 5 names + scores + one-line rationale each. Pause for user review.
-10. **Commit reminder.** Suggest: "Commit your CSV: `git add leads/ && git commit -m 'enrichment [date] [icp-slug]'`. Real cohort flow keeps lead history versioned."
+   - On any failure, log a `failure_reason` (name_too_common, rate_limited, no_public_footprint, etc.)
+10. **Score each row.** Reuse the existing `lib/lead-research.ts` scoring engine — unchanged. Outputs `score`, `band` (A/B/C/D), `signals_matched`, `top_signal`, `rationale_summary`. INFERRABLE-bucket signals contribute to score with a discount weight.
+11. **Rank + write outputs.** Sort by score descending. Write:
+    - `./leads/[YYYY-MM-DD]-[icp-slug].csv` (main output)
+    - `./leads/enrichment-log.md` (run metadata appended)
+    - `./leads/enrichment-followup-[YYYY-MM-DD].md` (if any rows would benefit from `/research:youtube` deep-dives or other manual follow-ups — with the exact commands)
+12. **Print top 5 + commit reminder.** Stdout summary: top 5 names + scores + one-line rationale each. Pause for user review. Suggest: "Commit your CSV: `git add leads/ && git commit -m 'enrichment [date] [icp-slug]'`."
 
-Total wall-clock for 50 rows: ~10-15 min. For 200 rows: ~30-50 min.
+Total wall-clock for 50 rows (email-first, B2B mix): ~10-15 min. For 200 rows: ~30-50 min. Apollo/ListKit imports run ~30% faster because resolution steps are pre-filled.
 
 ## 8. Quality gates (always run before writing CSV)
 
@@ -185,7 +316,10 @@ Total wall-clock for 50 rows: ~10-15 min. For 200 rows: ~30-50 min.
 - **`/ccmb-email-nurture` (S5)** — downstream. Reads the ranked CSV, drafts source-aware outreach for top-N rows.
 - **`/ccmb-headline-writer`** — orthogonal but useful. Generate outreach subject lines for top-ranked prospects in batch.
 - **`/skyscraper`** — invoked automatically when the ICP archetype doesn't match any default or custom cascade playbook. Scouts return ranked existing patterns; the skill synthesizes a one-time playbook for the novel archetype. Optional — skill falls back to `generic-fallback` if `ccmb-skyscraper` isn't installed. See §5 "Chaining with /skyscraper."
-- **`/research:youtube`** — for the `creator-thought-leader` playbook, dispatched **only when explicitly requested** on a high-value row (not per-row default). Returns deep transcript-level analysis of a creator's content. Lives in `~/.claude/commands/research/youtube.md`. The cascade itself uses lighter WebSearch + WebFetch for routine YouTube discovery.
+- **`/research:youtube`** — for the `creator-thought-leader` playbook, the cascade **does not auto-dispatch** this command. `/research:youtube` is designed for human invocation (writes transcript files to disk, requires a multi-step synthesis pass) and dispatching it mid-cascade would block the run for 5-10 min per row. Instead:
+  - **The cascade writes a follow-up file at `./leads/enrichment-followup-[date].md`** listing rows that would benefit from deep YouTube transcript analysis (high-value rows where the routine WebSearch + WebFetch YT discovery returned channel-URL signal but not content-depth signal).
+  - **The student manually runs `/research:youtube channel:@handle` after the cascade finishes** on the rows they actually want to deep-dive. ~5-10 min per dispatch, batched at the end, not blocking the cascade.
+  - **This is the explicit composition contract for cohort 1.** Programmatic auto-dispatch is a cohort 2+ feature that would require refactoring `/research:youtube` to expose a non-interactive mode. Not in scope now.
 - **The scoring engine `lib/lead-research.ts`** — unchanged from the v2 spec. This skill produces input for it; the engine produces the ranking output. Same contract.
 
 ## 11. The cohort 2+ roadmap (not shipping in v1)

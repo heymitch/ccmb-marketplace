@@ -124,10 +124,121 @@ Maria Lopez
 
 **Parsing:**
 - Each line = one `full_name` with all other fields empty
-- Waterfall must work harder per row — no company hint, no role hint
+- Cascade must work harder per row — no company hint, no role hint
 - Skill warns: "Names-only input means the cascade has less starting context. Expect ~30% more enrichment time per row and lower confidence in matches."
 
 If a name is ambiguous ("John Smith"), the skill flags the row with `enrichment_confidence: low` regardless of what it finds.
+
+---
+
+## Format 7 — Email-only list (most common cohort 1 case)
+
+**Example input:**
+```
+sarah.chen@acme.com
+marcus@stripe.com
+bob@gmail.com
+mlopez@techflow.io
+```
+
+**Parsing:**
+- Each line → one `email` field. `full_name` initially empty.
+- Skill auto-detects "this is email-primary" if >50% of rows are email-shaped with no name/company columns.
+- Routes to email-first pre-cascade (§6.5 of SKILL.md): resolves domain → company, handle → name, before playbook cascade fires.
+
+**Mistakes the skill catches:**
+- Mixed list (some rows email-only, some with full data): rows handled per-shape, no error.
+- Email with display name (`"Sarah Chen" <sarah@acme.com>`): regex strips display name into `full_name`, email into `email`.
+- Email with typos / malformed addresses: row flagged with `enrichment_confidence: low`, no enrichment attempted.
+
+---
+
+## Format 8 — ESP subscriber export (Kit, ConvertKit, Mailchimp, MailerLite, etc.)
+
+Each ESP has a slightly different column shape. Skill auto-detects common patterns.
+
+**Kit (ConvertKit) export example:**
+```
+Subscriber ID,First Name,Last Name,Email Address,State,Created At,Source,Tags,Last Subscribed Through
+12345,Sarah,Chen,sarah@acme.com,active,2026-01-15,landing_page,founder|saas,Lead Magnet: Marketing Stack
+```
+
+**Mailchimp export example:**
+```
+Email Address,First Name,Last Name,Address,Phone,Birthday,Last Changed,TIMEZONE
+sarah@acme.com,Sarah,Chen,,,,2026-01-15,America/New_York
+```
+
+**Parsing:**
+- `First Name` + `Last Name` → `full_name`
+- `Email Address` → `email`
+- `Tags` (Kit), `Source` (Kit), `Last Subscribed Through` (Kit) → `notes` — provides rich segmentation context for the playbook matcher (a tag of "saas|founder" pre-suggests `b2b-saas-founder` playbook before the ICP is even read)
+- `Created At` / `Last Changed` → `notes.subscribed_date`
+
+**Why this matters:** if your ESP tagged subscribers by lead magnet they downloaded or landing page they came from, that's already an intent signal. The cascade reads it before deciding which playbook fits.
+
+---
+
+## Format 9 — Legacy Apollo CSV export
+
+**Apollo's actual column shape (verify against your specific export; Apollo changes columns occasionally):**
+
+```
+First Name,Last Name,Email,Person LinkedIn URL,Title,Company,Company Website,
+Company LinkedIn URL,# Employees,Industry,Annual Revenue,Total Funding,
+Latest Funding,...
+```
+
+**Parsing:**
+- `First Name` + `Last Name` → `full_name`
+- `Email` → `email`
+- `Person LinkedIn URL` → `url` (noted; never crawled)
+- `Title` → `role`
+- `Company` → `company`
+- `Company Website` → `notes.company_url`
+- `# Employees` → `company_size`
+- `Industry` → `industry_signal`
+- `Annual Revenue`, `Total Funding`, `Latest Funding` → `notes.firmographics` (preserved but not directly scored — the scoring engine uses bands not exacts)
+
+**The key win:** Apollo CSVs ship with `role`, `company`, `industry`, and `company_size` already populated. The cascade **skips resolution steps** that the CSV already answers — it only runs source-lookups for the *missing* signals required by the student's ICP.
+
+**Migration story:** the student paid Apollo once, kept the CSV, cancelled the subscription. The skill enriches the data they already own without making them re-subscribe. "Your account, your list, your scoring — your skill."
+
+---
+
+## Format 10 — ListKit / Cognism / Lusha CSV exports
+
+These vendors have slightly different schemas but the pattern is identical to Apollo:
+- Person columns: name, email, role/title, LinkedIn URL
+- Company columns: company name, domain, headcount band, industry
+- Sometimes: technologies used, recent news, intent signals
+
+**Parsing:**
+- Detect by header pattern. If a CSV has columns matching `Company Industry` + `Employee Count` + `Email` + `LinkedIn`, treat as enriched-import.
+- Same skip-resolution behavior as Apollo Format 9.
+
+If a vendor format isn't auto-detected, the skill falls back to generic CSV-with-headers (Format 1) and uses the synonym map.
+
+---
+
+## Format 11 — S1/S2 lead-magnet capture exports (own funnel data)
+
+When the student exports their own `/api/lead` data (the S2 lead-magnet capture endpoint) or their landing-page form submissions, the shape is usually:
+
+```
+email,source,magnet_slug,meta_score,meta_band,meta_niche,captured_at
+sarah@acme.com,magnet,the-marketing-stack,,,founders,2026-02-15
+marcus@stripe.com,tool,stack-auditor,75,A,saas,2026-02-16
+```
+
+**Parsing:**
+- `email` → `email`
+- `source` → `notes.acquisition_source` (magnet vs tool)
+- `magnet_slug` / tool-specific → `notes.first_touch`
+- `meta_*` columns (when tool source) → already-known signals, fed directly to scoring engine
+- `captured_at` → `notes.first_touch_date`
+
+**The compounding moment:** the student's own funnel data, when run through enrichment, becomes a ranked pipeline of warm leads — visitors who already opted in once, now scored by ICP fit. Top of the list = highest-intent + best-fit prospects to reach out to first. This is the cleanest path from S1-S2 outputs into S5 outreach.
 
 ---
 
