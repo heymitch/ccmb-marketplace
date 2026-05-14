@@ -32,6 +32,7 @@ skills/
   ccmb-safe-install/               ← npm/CLI install shield, reads campaign-status.json
   ccmb-skyscraper/                 ← pre-flight scan for existing solutions
   ccmb-voice-lab/                  ← 10-skill voice training (Cole / Bush framework)
+  ccmb-campaign-brainstorm/        ← dual-mode launch-campaign brief generator
 
 references/
   vibe-editing.md           ← cross-cutting cheat sheet linked from every session
@@ -102,6 +103,12 @@ Run `/skyscraper "<marketing problem>"` to scan native Claude Code skills + Apif
 ### `ccmb-voice-lab` — 10-skill voice training
 
 Ported from Cowork Bootcamp v2. Trains Claude Code on the student's writing voice using Nicolas Cole + Dickie Bush's *Digital Writers Voice Lab* framework. Outputs `voice/voice-template.md` that every CCMB content skill reads automatically. Orchestrator: `/voice-training`. Theory tour: `/voice-tutor`.
+
+### `ccmb-campaign-brainstorm` — Campaign Pack planning skill
+
+Dual-mode launch-campaign brief generator. Smart mode reads existing context (CLAUDE.md, voice-template.md, MCPs, deps) and asks ~6-8 Qs for what's missing. Workshop mode walks 5 framework layers (~15 Qs). Output: `campaigns/<slug>/brief.md` with 16-field YAML frontmatter + markdown body. Downstream CCMB skills auto-read the brief when cwd is at or below `campaigns/<slug>/` (v1.1 retrofit, separate ship).
+
+MarTech section is Claude-native — uses installed MCPs, never defaults to paid SaaS. Ayrshare and HubSpot paid only mentioned if detected or asked.
 
 ## The campaign-status signal (for `ccmb-safe-install`)
 
