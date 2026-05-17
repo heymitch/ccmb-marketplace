@@ -1,0 +1,21 @@
+{
+  "name": "lead-magnet-launch-system",
+  "version": "1.0.0",
+  "description": "Claude Code-native Lead Magnet Launch System. Runs all 8 steps — idea, name, mockup, landing copy, preview, onboarding sequence, promo email, build the asset — then wires the opt-in and delivers. Kit (ConvertKit) canonical; Substack and other providers as adapters.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch.harris49@gmail.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/",
+  "keywords": [
+    "lead-magnet",
+    "marketing",
+    "email-capture",
+    "convertkit",
+    "kit",
+    "substack",
+    "funnel",
+    "opt-in",
+    "newsletter"
+  ]
+}

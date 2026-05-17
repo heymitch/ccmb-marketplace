@@ -1,0 +1,127 @@
+{
+  "$schema": "https://code.claude.com/schemas/marketplace.json",
+  "name": "ccmb-marketplace",
+  "owner": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "metadata": {
+    "description": "Claude Code Marketing Bootcamp \u2014 official plugin marketplace. Session plugins, the LP factory stack, and CCMB utilities.",
+    "version": "1.0.0",
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "ccmb-headline-writer",
+      "source": "./plugins/ccmb-headline-writer",
+      "description": "Generate 10 headline variations for a given topic + audience + voice. Uses mechanism-headline and objection-headline patterns (not just outcome). Use when drafting hero headlines, magnet titles, free-tool naming, or email subject lines. Triggers \u2014 \"/ccmb-headline-writer\", \"generate headlines\", \"give me 10 headline options for X\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-landing-page",
+      "source": "./plugins/ccmb-landing-page",
+      "description": "Generate (or rewrite) a complete landing page in the voice of the active CLAUDE.md \u2014 hero, pitch, CTA, social proof \u2014 as hand-tunable HTML inside a Next.js scaffold, mobile-correct and Core-Web-Vitals-performant by default, and deploy it to Vercel. Use when shipping a marketing site for the first time, rewriting an existing hero after a CLAUDE.md change, spinning up a landing page for a side project / pivot / client, or any prompt that asks for \"a landing page\", \"a marketing site\", \"a hero section\", or \"rebuild my site from CLAUDE.md\". Triggers \u2014 \"/ccmb-landing-page\", \"build my landing page\", \"rewrite my hero section\", \"generate a marketing site from my CLAUDE.md\", \"ship a landing page\", \"scaffold a marketing page\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-lead-enrichment",
+      "source": "./plugins/ccmb-lead-enrichment",
+      "description": "Cascade enrichment for an existing list of leads \u2014 takes a CSV/paste of names+companies+URLs, queries free public sources (web search, GitHub, public APIs, About pages) in ICP-tuned order, and outputs a ranked CSV with rationale per row. Chains with /skyscraper when ICP shape is novel and no default cascade playbook fits. No Apollo, no Clay subscription, no external connector. Use when the student has a list and needs to rank/qualify it against their current offer. Triggers \u2014 \"/ccmb-lead-enrichment\", \"enrich my list\", \"score my leads\", \"cascade enrichment\", \"waterfall enrichment\", \"rank my prospects\", \"qualify this list\", \"who should I reach out to first\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-lp-build",
+      "source": "./plugins/ccmb-lp-build",
+      "description": "Compose a complete landing page from a cached design system + `copy.json` and deploy it live to Vercel. Reads `~/.ccmb-lp/design-tokens.json` (from /ccmb-lp-design) and `./copy.json` (from /ccmb-lp-copy), scaffolds Next.js + Tailwind, applies the baked-in mobile + perf rules, and ships the live URL. Use when design + copy are already locked and you want to deploy, or when you want the orchestrator that chains design \u2192 copy \u2192 build in one prompt. Triggers \u2014 \"/ccmb-lp-build\", \"deploy my landing page\", \"ship the LP\", \"build and deploy this page\", \"make the page go live\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-lp-copy",
+      "source": "./plugins/ccmb-lp-copy",
+      "description": "Generate conversion-optimized landing page copy as a structured `copy.json` \u2014 reader's promise, hero, benefits, social proof, CTA, FAQ \u2014 using proven LP frameworks (PAS, AIDA, StoryBrand, Hormozi Grand Slam Offer, Schwartz 5 levels of awareness) matched to your product and audience. Use when you need landing page copy that converts, when you're staring at a blank page wondering what each section should say, when the headline isn't landing, or before /ccmb-lp-build. Triggers \u2014 \"/ccmb-lp-copy\", \"write my landing page copy\", \"I need a headline that converts\", \"draft my hero\", \"what should my benefits section say\", \"write copy for my product\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-lp-design",
+      "source": "./plugins/ccmb-lp-design",
+      "description": "Generate a reusable brand design system \u2014 color tokens, typography, spacing, component primitives \u2014 in 4-6 minutes via a short interview, then cache it so every future landing page reuses it. Use when starting a new brand, when no design system exists yet, when the user wants every page to feel like one product, or before running /ccmb-lp-copy or /ccmb-lp-build. Triggers \u2014 \"/ccmb-lp-design\", \"design my brand\", \"create a design system\", \"make a brand kit\", \"I need brand colors and fonts\", \"design tokens\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-safe-install",
+      "source": "./plugins/ccmb-safe-install",
+      "description": "Benevolent shield for npm / CLI installs. Students type `/safe-install <pkg>` and the plugin handles publish-date checks, CVE lookups, lifecycle-hook defang, and version pinning automatically. Reads live campaign status from heymitch/ccmb-marketplace so the shield relaxes globally the moment Mitch f",
+      "version": "0.1.0",
+      "category": "tool"
+    },
+    {
+      "name": "ccmb-sentence-editor",
+      "source": "./plugins/ccmb-sentence-editor",
+      "description": "Tighten marketing copy. Remove hedging, AI-detection patterns, jargon, and parallel-structure tells. Pass a paragraph; get back a sharper version in the active CLAUDE.md voice. Use when polishing landing-page copy, email body, social posts, or any prose that needs to land harder. Triggers \u2014 \"/ccmb-sentence-editor\", \"tighten this\", \"make this less AI\", \"edit my copy\".",
+      "version": "1.0.0",
+      "category": "skill"
+    },
+    {
+      "name": "ccmb-skyscraper",
+      "source": "./plugins/ccmb-skyscraper",
+      "description": "Scan existing skyscrapers (native skills, Apify, Reddit, YouTube) before vibe-coding from scratch. 5th CCMB bonus plugin.",
+      "version": "0.1.0",
+      "category": "tool"
+    },
+    {
+      "name": "ccmb-voice-lab",
+      "source": "./plugins/ccmb-voice-lab",
+      "description": "Train Claude Code to write like you. Run /voice-training (or any of the 8 sub-skills) to extract your Voice DNA, archetype mix, vocabulary lists, sentence fingerprint, quirks, and tone grid. Compiles into a Voice Template at voice/voice-template.md that every CCMB content skill reads automatically. ",
+      "version": "2.1.0",
+      "category": "tool"
+    },
+    {
+      "name": "email-nurture",
+      "source": "./plugins/email-nurture",
+      "description": "Builds multi-email nurture sequences with two arcs: research-nurture (convert opt-ins into booked 1:1 conversations) and Ship 30 FOMO sales (convert a list into product purchases via the proven 7-email framework). Genre-lock preflight, AI-pattern cleanse, a grounding pass against the product's sourc",
+      "version": "1.1.0",
+      "category": "session"
+    },
+    {
+      "name": "free-tool",
+      "source": "./plugins/free-tool",
+      "description": "Build a Free Tool \u2014 a deployable lead-magnet mini-app (quiz, calculator, assessment, or diagnostic) engineered as an ungameable, shareable research instrument with a tiered opt-in funnel. Builds on the Supabase+SQL storage provisioned by the lead-magnet skill.",
+      "version": "1.0.0",
+      "category": "session"
+    },
+    {
+      "name": "landing-page-builder",
+      "source": "./plugins/landing-page-builder",
+      "description": "Build and deploy a high-converting landing or sales page \u2014 offer stack, the proven 11-section LTO copy structure, a 15-question FAQ, distinctive design via the bundled frontend-design skill, images, and a live Vercel URL. Walks you through it section by section with approval gates. Lead-magnet and f",
+      "version": "1.0.0",
+      "category": "session"
+    },
+    {
+      "name": "lead-magnet-launch-system",
+      "source": "./plugins/lead-magnet-launch-system",
+      "description": "Claude Code-native Lead Magnet Launch System. Runs all 8 steps \u2014 idea, name, mockup, landing copy, preview, onboarding sequence, promo email, build the asset \u2014 then wires the opt-in and delivers. Kit (ConvertKit) canonical; Substack and other providers as adapters.",
+      "version": "1.0.0",
+      "category": "session"
+    },
+    {
+      "name": "lead-research",
+      "source": "./plugins/lead-research",
+      "description": "Enrich opt-in lead lists from organic content into a confidence-rated, research-backed CSV with org/role/contact fields, LinkedIn/X handles, and one-sentence personalized openers. Prefers a connected CRM or paid enrichment connector when present; otherwise uses native web research via parallel agent",
+      "version": "1.0.0",
+      "category": "session"
+    },
+    {
+      "name": "marketing-dashboard-kit",
+      "source": "./plugins/marketing-dashboard-kit",
+      "description": "Build a password-protected marketing analytics dashboard end-to-end: discover which platforms you pull analytics from and whether native connectors exist, stand up a safe Supabase data layer with SECURITY DEFINER aggregates, build a dashboard that matches your own design system, and deploy it behind",
+      "version": "0.1.0",
+      "category": "session"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Sign in</title>
+<!-- Replace this style block with the user's detected design system. Structure stays. -->
+<style>
+  :root { --bg:#0a0908; --fg:#f4ecdd; --muted:#8a7e72; --line:rgba(244,236,221,.18);
+          --accent:#a5331f; --radius:2px; --sans:system-ui,-apple-system,sans-serif; }
+  *{box-sizing:border-box} body{margin:0;min-height:100vh;display:flex;align-items:center;
+    justify-content:center;background:var(--bg);color:var(--fg);font-family:var(--sans)}
+  .card{width:100%;max-width:380px;padding:40px;border:1px solid var(--line);border-radius:var(--radius)}
+  h1{font-size:28px;margin:0 0 24px}
+  label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  input{width:100%;padding:13px;background:transparent;border:1px solid var(--line);
+    border-radius:var(--radius);color:var(--fg);font-size:15px;outline:0}
+  input:focus{border-color:var(--accent)}
+  button{width:100%;margin-top:16px;padding:13px;background:var(--fg);color:var(--bg);
+    border:0;border-radius:var(--radius);font-weight:600;cursor:pointer}
+  .err{color:var(--accent);font-size:12px;min-height:1em;margin-top:8px}
+</style>
+</head>
+<body>
+  <main class="card">
+    <h1>Sign in</h1>
+    <form id="f">
+      <label for="pw">Password</label>
+      <input id="pw" type="password" required autocomplete="current-password" autofocus>
+      <div class="err" id="e"></div>
+      <button id="b" type="submit">Enter</button>
+    </form>
+  </main>
+<script>
+const f=document.getElementById('f'),e=document.getElementById('e'),b=document.getElementById('b');
+f.addEventListener('submit',async ev=>{
+  ev.preventDefault(); e.textContent=''; b.disabled=true; b.textContent='Checking…';
+  try{
+    const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},
+      body:JSON.stringify({password:document.getElementById('pw').value}),credentials:'same-origin'});
+    if(r.ok){ location = new URLSearchParams(location.search).get('next') || '/dashboard'; }
+    else { e.textContent = r.status===429?'Too many attempts. Wait a minute.':'Wrong password.';
+           b.disabled=false; b.textContent='Enter'; }
+  }catch{ e.textContent='Network error.'; b.disabled=false; b.textContent='Enter'; }
+});
+</script>
+</body>
+</html>

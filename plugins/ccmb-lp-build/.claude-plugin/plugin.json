@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-lp-build",
+  "version": "1.0.0",
+  "description": "Compose a complete landing page from a cached design system + `copy.json` and deploy it live to Vercel. Reads `~/.ccmb-lp/design-tokens.json` (from /ccmb-lp-design) and `./copy.json` (from /ccmb-lp-copy), scaffolds Next.js + Tailwind, applies the baked-in mobile + perf rules, and ships the live URL. Use when design + copy are already locked and you want to deploy, or when you want the orchestrator that chains design \u2192 copy \u2192 build in one prompt. Triggers \u2014 \"/ccmb-lp-build\", \"deploy my landing page\", \"ship the LP\", \"build and deploy this page\", \"make the page go live\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

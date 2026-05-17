@@ -2,6 +2,24 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [1.0.0] — 2026-05-16
+
+Converted from a raw-fetch skill host into a **native Claude Code plugin marketplace**.
+
+### Added
+- `.claude-plugin/marketplace.json` at repo root — 16 plugins, validated with `claude plugin validate`.
+- `plugins/` directory. Every plugin is an unzipped directory with its own `.claude-plugin/plugin.json`.
+- 6 session plugins imported from the bootcamp build set: `lead-magnet-launch-system`, `landing-page-builder`, `free-tool`, `lead-research`, `email-nurture`, `marketing-dashboard-kit`.
+- 7 former bare skills wrapped as installable plugins: `ccmb-headline-writer`, `ccmb-sentence-editor`, `ccmb-landing-page`, `ccmb-lp-design`, `ccmb-lp-copy`, `ccmb-lp-build`, `ccmb-lead-enrichment`.
+
+### Changed
+- `ccmb-safe-install`, `ccmb-skyscraper`, `ccmb-voice-lab` moved `skills/` → `plugins/`; their `plugin.json` `name` normalized to the directory name.
+- Install path is now `/plugin marketplace add heymitch/ccmb-marketplace` then `/plugin install <name>@ccmb-marketplace`.
+
+### Breaking
+- Loose skill raw URLs (`…/main/skills/<name>/SKILL.md`) now 404 — content moved to `plugins/<name>/skills/<name>/SKILL.md`. The CCMB session-1 trigger prompt and LP-factory install paste must be updated.
+- `sessions/`, `references/`, and `campaign-status.json` paths are unchanged and still raw-fetch correctly.
+
 ## [0.3.3] — 2026-05-13
 
 Browser-use escalation for JS-rendered pages. Composes with `dev-browser` skill, `claude-in-chrome` MCP, or `computer-use` MCP — first available.

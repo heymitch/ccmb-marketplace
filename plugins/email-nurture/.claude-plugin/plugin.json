@@ -1,0 +1,23 @@
+{
+  "name": "email-nurture",
+  "version": "1.1.0",
+  "description": "Builds multi-email nurture sequences with two arcs: research-nurture (convert opt-ins into booked 1:1 conversations) and Ship 30 FOMO sales (convert a list into product purchases via the proven 7-email framework). Genre-lock preflight, AI-pattern cleanse, a grounding pass against the product's source-of-truth artifact, no-hallucination HOLD shells, verbatim FOMO templates + subject-line rules, plus companion artifacts. NOT for quiz/lead-magnet creation, standalone generic copywriting, or dashboard implementation.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "license": "Personal/purchaser use only. Not for redistribution.",
+  "keywords": [
+    "email-nurture",
+    "nurture-sequence",
+    "drip-campaign",
+    "lead-magnet-followup",
+    "fomo-campaign",
+    "product-launch-emails",
+    "interview-recruitment",
+    "warm-lead",
+    "kit-convertkit",
+    "ai-hunter",
+    "marketing"
+  ]
+}

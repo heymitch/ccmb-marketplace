@@ -1,0 +1,16 @@
+{
+  "name": "ccmb-voice-lab",
+  "version": "2.1.0",
+  "description": "Train Claude Code to write like you. Run /voice-training (or any of the 8 sub-skills) to extract your Voice DNA, archetype mix, vocabulary lists, sentence fingerprint, quirks, and tone grid. Compiles into a Voice Template at voice/voice-template.md that every CCMB content skill reads automatically. Based on the Digital Writers Voice Lab by Nicolas Cole and Dickie Bush.",
+  "author": {
+    "name": "Mitch Harris"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "ccmb",
+    "marketing",
+    "voice",
+    "writing",
+    "brand"
+  ]
+}
