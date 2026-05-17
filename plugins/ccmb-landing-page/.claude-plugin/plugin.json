@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-landing-page",
+  "version": "1.0.0",
+  "description": "Generate (or rewrite) a complete landing page in the voice of the active CLAUDE.md \u2014 hero, pitch, CTA, social proof \u2014 as hand-tunable HTML inside a Next.js scaffold, mobile-correct and Core-Web-Vitals-performant by default, and deploy it to Vercel. Use when shipping a marketing site for the first time, rewriting an existing hero after a CLAUDE.md change, spinning up a landing page for a side project / pivot / client, or any prompt that asks for \"a landing page\", \"a marketing site\", \"a hero section\", or \"rebuild my site from CLAUDE.md\". Triggers \u2014 \"/ccmb-landing-page\", \"build my landing page\", \"rewrite my hero section\", \"generate a marketing site from my CLAUDE.md\", \"ship a landing page\", \"scaffold a marketing page\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

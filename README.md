@@ -1,133 +1,104 @@
 # CCMB Marketplace
 
-Public marketplace for the **Claude Code Marketing Bootcamp** — hosts the skills and instruction bundles that students fetch via the live-session trigger prompts.
+Official Claude Code **plugin marketplace** for the **Claude Code Marketing Bootcamp**.
 
-Students don't clone this repo. Their Claude Code fetches individual files via `raw.githubusercontent.com` URLs at runtime.
+Students add the marketplace once, then install any plugin by name.
 
-## Structure
+## Install
 
 ```
+/plugin marketplace add heymitch/ccmb-marketplace
+/plugin install <plugin-name>@ccmb-marketplace
+```
+
+List everything available:
+
+```
+/plugin marketplace list
+```
+
+## Plugins
+
+All plugins live unzipped under `plugins/` and are registered in
+`.claude-plugin/marketplace.json`.
+
+### Session plugins
+
+| Plugin | What it does |
+|---|---|
+| `lead-magnet-launch-system` | Idea → name → mockup → landing copy → onboarding → built, wired, delivered |
+| `landing-page-builder` | Offer stack → 11-section LTO copy → 15-Q FAQ → designed layout → live Vercel URL |
+| `free-tool` | Build a deployable lead-magnet mini-app (quiz, calculator, etc.) |
+| `lead-research` | Enrich opt-in lead lists into a confidence-rated, prioritized list |
+| `email-nurture` | Multi-email nurture sequences — research-nurture and re-engagement arcs |
+| `marketing-dashboard-kit` | Password-protected marketing analytics dashboard, end to end |
+
+### LP factory stack
+
+| Plugin | Step |
+|---|---|
+| `ccmb-lp-design` | 1 — reusable brand design system (tokens + components), cached |
+| `ccmb-lp-copy` | 2 — conversion copy as `copy.json` via PAS/AIDA/StoryBrand/Hormozi/Schwartz |
+| `ccmb-lp-build` | 3 — scaffold + deploy to Vercel; auto-chains design → copy → build |
+| `ccmb-landing-page` | Single-shot alternative — design + copy + build in one pass |
+
+### Utilities
+
+| Plugin | What it does |
+|---|---|
+| `ccmb-headline-writer` | 10 headline variations (mechanism + objection patterns, not just outcome) |
+| `ccmb-sentence-editor` | Tighten copy — strip hedging, AI-detection tells, jargon |
+| `ccmb-lead-enrichment` | Cascade enrichment of an existing list, free public sources only |
+
+### Tool packages (multi-skill)
+
+| Plugin | What it does |
+|---|---|
+| `ccmb-safe-install` | npm/CLI install shield — date quarantine, CVE lookup, hook defang |
+| `ccmb-skyscraper` | Pre-flight scan (native skills / Apify / Reddit / YouTube) before vibe-coding |
+| `ccmb-voice-lab` | 10-skill voice training (Cole / Bush *Digital Writers Voice Lab*) |
+
+## Repo structure
+
+```
+.claude-plugin/
+  marketplace.json          ← marketplace manifest (16 plugins)
+plugins/
+  <plugin>/
+    .claude-plugin/plugin.json
+    skills/ | commands/ | bin/ | references/ ...
 sessions/
-  session-1/
-    instructions.md         ← rich bundle the S1 trigger prompt fetches and executes
-  session-2/ ... session-6/  (forthcoming)
-
-skills/
-  ccmb-landing-page/SKILL.md       ← session-1 generator (monolith, single-shot)
-  ccmb-headline-writer/SKILL.md    ← utility, used in S1-S5
-  ccmb-sentence-editor/SKILL.md    ← utility, used in every session
-
-  # LP factory stack (additive, multi-page workflow)
-  ccmb-lp-design/SKILL.md          ← step 1: brand design system (tokens + components)
-  ccmb-lp-copy/SKILL.md            ← step 2: conversion copy via frameworks
-    references/                    ← bundled — frameworks, copy-patterns, voice-rules, swipe-file
-  ccmb-lp-build/SKILL.md           ← step 3: scaffold + deploy (orchestrator, auto-chains)
-
-  # S4 lead enrichment (replaces Apollo dependency — no vendor lock-in)
-  ccmb-lead-enrichment/SKILL.md    ← cascade enrichment for existing lists, Tier 1 free sources only
-                                     chains with /skyscraper for novel ICP archetypes
-    references/                    ← bundled — cascade-playbooks (5 default ICP shapes), parsing-rules
-
-  # Bonus packages (multi-skill plugins, installed as directories)
-  ccmb-safe-install/               ← npm/CLI install shield, reads campaign-status.json
-  ccmb-skyscraper/                 ← pre-flight scan for existing solutions
-  ccmb-voice-lab/                  ← 10-skill voice training (Cole / Bush framework)
-
+  session-1/instructions.md ← live-session bundle (still raw-fetched at runtime)
 references/
-  vibe-editing.md           ← cross-cutting cheat sheet linked from every session
-
-campaign-status.json        ← LIVE signal for the safe-install shield (see below)
+  vibe-editing.md           ← cross-cutting cheat sheet
+campaign-status.json        ← live policy signal for ccmb-safe-install
 ```
 
-## Two LP paths
+## Still raw-fetched at runtime (not via /plugin)
 
-**Single-shot (monolith) — `/ccmb-landing-page`:**
-One skill, design + copy + build in one pass. Use for one-off pages where reusability across pages doesn't matter.
+Two things deliberately stay file-fetched and are **not** installed as plugins:
 
-**Factory stack (3 skills) — `/ccmb-lp-design` → `/ccmb-lp-copy` → `/ccmb-lp-build`:**
-Reusable brand design system + framework-driven copy + cached artifacts. Use when shipping multiple pages on the same brand. `/ccmb-lp-build` auto-chains the prerequisites if their artifacts are missing, so a blank folder still works with a single `/ccmb-lp-build` prompt.
+- **`sessions/session-N/instructions.md`** — the live-session trigger prompts
+  fetch these via `raw.githubusercontent.com/heymitch/ccmb-marketplace/main/sessions/...`.
+- **`campaign-status.json`** — the `ccmb-safe-install` shield reads this from the
+  repo root on every invocation. Flip `campaign_active` to `false` to relax every
+  student's shield globally; append to `recent_compromises` to hard-block a bad
+  version; add to `pinned_packages` to force a version.
+  URL: `https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/campaign-status.json`
 
-## What students fetch
+## ⚠️ Migration note (v1.0.0 — native marketplace conversion)
 
-The session-1 trigger prompt fetches and executes:
+This repo was converted from a raw-fetch skill host into a native plugin
+marketplace. **Loose skill paths moved:**
+`skills/<name>/SKILL.md` → `plugins/<name>/skills/<name>/SKILL.md`.
 
-- `sessions/session-1/instructions.md` — what to build, scaffold rules, default styling, deploy flow
-- `skills/ccmb-landing-page/SKILL.md` — installs app-wide to `~/.claude/skills/`
-- `skills/ccmb-headline-writer/SKILL.md` — same
-- `skills/ccmb-sentence-editor/SKILL.md` — same
-
-The LP factory stack installs independently. See `Installing the LP factory stack` below.
-
-URLs use `raw.githubusercontent.com/heymitch/ccmb-marketplace/main/<path>`.
-
-## Installing the LP factory stack
-
-Paste this in any Claude Code chat to install all three LP factory skills app-wide:
-
-```
-Install the CCMB LP factory stack to ~/.claude/skills/ by fetching:
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-design/SKILL.md
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-copy/SKILL.md
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-build/SKILL.md
-And the lp-copy references folder:
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-copy/references/frameworks.md
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-copy/references/copy-patterns.md
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-copy/references/voice-rules.md
-- https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/skills/ccmb-lp-copy/references/swipe-file.md
-Place each in ~/.claude/skills/<skill-name>/ matching the marketplace structure.
-```
-
-Then in any folder: `/ccmb-lp-build` → blank-workspace → live page in 14-22 minutes on first run, 9-12 minutes per page after.
-
-## The bonus packages (multi-skill plugins)
-
-Three larger packages live as full directories under `skills/`. They're multi-file (entry skill + sub-skills + bin/ or references/), so students install them as directories, not single SKILL.md files.
-
-### `ccmb-safe-install` — the npm/CLI shield
-
-Students say "install chalk" or `/safe-install chalk`, and the plugin handles publish-date quarantine, CVE lookup, lifecycle-hook defang, and pinned-version policy automatically. Reads live state from `campaign-status.json` at this repo's root — flip `campaign_active` to `false` and every student's shield relaxes globally on the next install.
-
-```
-skills/ccmb-safe-install/
-  skills/safe-install/SKILL.md     ← entry point + policy
-  bin/safe-npm                      ← bash worker (the actual install gate)
-  bin/lib/*.py                      ← python helpers
-  config/campaign-status.json       ← offline fallback (live version is at repo root)
-```
-
-### `ccmb-skyscraper` — pre-flight scan for existing solutions
-
-Run `/skyscraper "<marketing problem>"` to scan native Claude Code skills + Apify Store + Reddit + YouTube before vibe-coding from scratch. Sub-agent fan-out with curated `known-natives.md` corpus. UserPromptSubmit hook auto-nudges on vibe-code intent.
-
-### `ccmb-voice-lab` — 10-skill voice training
-
-Ported from Cowork Bootcamp v2. Trains Claude Code on the student's writing voice using Nicolas Cole + Dickie Bush's *Digital Writers Voice Lab* framework. Outputs `voice/voice-template.md` that every CCMB content skill reads automatically. Orchestrator: `/voice-training`. Theory tour: `/voice-tutor`.
-
-## The campaign-status signal (for `ccmb-safe-install`)
-
-`campaign-status.json` at the repo root is the live policy file the safe-install shield reads on every invocation. Shape:
-
-```json
-{
-  "campaign_active": true,
-  "campaign_name": "Mini Shai-Hulud / TeamPCP",
-  "before_date_offset_days": 14,
-  "pinned_packages": {"vercel": "39.4.0"},
-  "recent_compromises": [],
-  "last_updated": "2026-05-13"
-}
-```
-
-**To deactivate the shield globally:** flip `campaign_active` to `false`. Every CCMB student's shield silently becomes a pass-through on next install. No emails, no manual reversal.
-
-**To hard-block a freshly disclosed compromised version:** append to `recent_compromises` (e.g., `"foo@1.2.3"`). Students refuse to install it the moment the commit lands.
-
-**To pin a different package:** add to `pinned_packages`. Students can only install the pinned version unless they pass `--pin-override`.
-
-URL the shield fetches: `https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/campaign-status.json`
+Any old raw URL pointing at `…/main/skills/…` now 404s. The CCMB project's
+session-1 trigger prompt and the LP-factory install paste must be updated to
+either (a) instruct `/plugin install …@ccmb-marketplace`, or (b) point at the
+new `plugins/<name>/skills/<name>/SKILL.md` paths. `sessions/` and
+`campaign-status.json` paths are unchanged and still resolve.
 
 ## Versioning
 
-Breaking changes bump the trigger-prompt version inside `session-N-landing-page.md` in the CCMB project. Backwards-compatible fixes ship straight to `main`.
-
-See `CHANGELOG.md`.
+Per-plugin `version` lives in each `plugins/<name>/.claude-plugin/plugin.json`
+and is mirrored in `marketplace.json`. See `CHANGELOG.md`.

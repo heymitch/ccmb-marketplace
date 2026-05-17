@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-sentence-editor",
+  "version": "1.0.0",
+  "description": "Tighten marketing copy. Remove hedging, AI-detection patterns, jargon, and parallel-structure tells. Pass a paragraph; get back a sharper version in the active CLAUDE.md voice. Use when polishing landing-page copy, email body, social posts, or any prose that needs to land harder. Triggers \u2014 \"/ccmb-sentence-editor\", \"tighten this\", \"make this less AI\", \"edit my copy\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-lp-design",
+  "version": "1.0.0",
+  "description": "Generate a reusable brand design system \u2014 color tokens, typography, spacing, component primitives \u2014 in 4-6 minutes via a short interview, then cache it so every future landing page reuses it. Use when starting a new brand, when no design system exists yet, when the user wants every page to feel like one product, or before running /ccmb-lp-copy or /ccmb-lp-build. Triggers \u2014 \"/ccmb-lp-design\", \"design my brand\", \"create a design system\", \"make a brand kit\", \"I need brand colors and fonts\", \"design tokens\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

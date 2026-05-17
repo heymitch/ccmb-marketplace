@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-lead-enrichment",
+  "version": "1.0.0",
+  "description": "Cascade enrichment for an existing list of leads \u2014 takes a CSV/paste of names+companies+URLs, queries free public sources (web search, GitHub, public APIs, About pages) in ICP-tuned order, and outputs a ranked CSV with rationale per row. Chains with /skyscraper when ICP shape is novel and no default cascade playbook fits. No Apollo, no Clay subscription, no external connector. Use when the student has a list and needs to rank/qualify it against their current offer. Triggers \u2014 \"/ccmb-lead-enrichment\", \"enrich my list\", \"score my leads\", \"cascade enrichment\", \"waterfall enrichment\", \"rank my prospects\", \"qualify this list\", \"who should I reach out to first\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

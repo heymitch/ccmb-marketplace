@@ -1,0 +1,16 @@
+{
+  "name": "ccmb-safe-install",
+  "version": "0.1.0",
+  "description": "Benevolent shield for npm / CLI installs. Students type `/safe-install <pkg>` and the plugin handles publish-date checks, CVE lookups, lifecycle-hook defang, and version pinning automatically. Reads live campaign status from heymitch/ccmb-marketplace so the shield relaxes globally the moment Mitch flips it off.",
+  "author": {
+    "name": "Mitch Harris"
+  },
+  "license": "UNLICENSED",
+  "keywords": [
+    "ccmb",
+    "marketing",
+    "safety",
+    "supply-chain",
+    "npm"
+  ]
+}

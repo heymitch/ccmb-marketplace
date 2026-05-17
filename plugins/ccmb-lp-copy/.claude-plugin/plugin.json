@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-lp-copy",
+  "version": "1.0.0",
+  "description": "Generate conversion-optimized landing page copy as a structured `copy.json` \u2014 reader's promise, hero, benefits, social proof, CTA, FAQ \u2014 using proven LP frameworks (PAS, AIDA, StoryBrand, Hormozi Grand Slam Offer, Schwartz 5 levels of awareness) matched to your product and audience. Use when you need landing page copy that converts, when you're staring at a blank page wondering what each section should say, when the headline isn't landing, or before /ccmb-lp-build. Triggers \u2014 \"/ccmb-lp-copy\", \"write my landing page copy\", \"I need a headline that converts\", \"draft my hero\", \"what should my benefits section say\", \"write copy for my product\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

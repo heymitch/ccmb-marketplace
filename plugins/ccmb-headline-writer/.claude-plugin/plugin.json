@@ -1,0 +1,10 @@
+{
+  "name": "ccmb-headline-writer",
+  "version": "1.0.0",
+  "description": "Generate 10 headline variations for a given topic + audience + voice. Uses mechanism-headline and objection-headline patterns (not just outcome). Use when drafting hero headlines, magnet titles, free-tool naming, or email subject lines. Triggers \u2014 \"/ccmb-headline-writer\", \"generate headlines\", \"give me 10 headline options for X\".",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/"
+}

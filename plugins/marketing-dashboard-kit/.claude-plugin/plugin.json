@@ -1,0 +1,9 @@
+{
+  "name": "marketing-dashboard-kit",
+  "version": "0.1.0",
+  "description": "Build a password-protected marketing analytics dashboard end-to-end: discover which platforms you pull analytics from and whether native connectors exist, stand up a safe Supabase data layer with SECURITY DEFINER aggregates, build a dashboard that matches your own design system, and deploy it behind a password on Vercel. Built for the Claude Code Marketing Bootcamp.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch.harris49@gmail.com"
+  }
+}

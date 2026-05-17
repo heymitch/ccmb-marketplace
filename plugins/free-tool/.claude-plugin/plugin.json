@@ -1,0 +1,22 @@
+{
+  "name": "free-tool",
+  "version": "1.0.0",
+  "description": "Build a Free Tool — a deployable lead-magnet mini-app (quiz, calculator, assessment, or diagnostic) engineered as an ungameable, shareable research instrument with a tiered opt-in funnel. Builds on the Supabase+SQL storage provisioned by the lead-magnet skill.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "license": "Personal / purchaser use only. Not for redistribution.",
+  "keywords": [
+    "free-tool",
+    "lead-magnet",
+    "quiz",
+    "calculator",
+    "assessment",
+    "diagnostic",
+    "funnel",
+    "ungameable-scoring",
+    "archetype",
+    "research-instrument"
+  ]
+}
