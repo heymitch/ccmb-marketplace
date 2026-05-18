@@ -2,6 +2,23 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [1.0.0] — 2026-05-18
+
+First real marketplace release. The repo is now an installable Claude Code plugin marketplace, not a raw-file CDN.
+
+### Added
+- **`.claude-plugin/marketplace.json`** — the marketplace manifest. Students run `/plugin marketplace add heymitch/ccmb-marketplace` then `/plugin install <name>@ccmb-marketplace`.
+- **Six core session plugins**, bundled and installable: `landing-page-builder`, `lead-magnet-launch-system`, `free-tool`, `lead-research`, `email-nurture`, `marketing-dashboard-kit`. Each is a slash command with its own skills + references/assets.
+- **`MAINTAINERS.md`** — campaign-status kill-switch, versioning policy, release checklist (moved out of the README).
+
+### Changed
+- **`plugins/` replaces `skills/`** as the plugin directory.
+- **Folder names == manifest names** for all 10 plugins. Bonus plugins de-prefixed: `ccmb-safe-install` → `safe-install`, `ccmb-skyscraper` → `skyscraper`, `ccmb-voice-lab` → `voice-lab`, `ccmb-campaign-brainstorm` → `campaign-brainstorm` (manifest + inner skill dir + trigger phrases normalized).
+- **README rewritten student-facing** — three-command install, plugin tables, session map. Internals relocated to `MAINTAINERS.md`.
+
+### Removed
+- **Raw-fetch distribution model.** Deleted the loose `ccmb-landing-page`, `ccmb-lp-design`, `ccmb-lp-copy`, `ccmb-lp-build`, `ccmb-headline-writer`, `ccmb-sentence-editor`, `ccmb-lead-enrichment` skills (superseded by bundled plugins) and the `sessions/` directory (session mapping now lives only in the README).
+
 ## [0.3.3] — 2026-05-13
 
 Browser-use escalation for JS-rendered pages. Composes with `dev-browser` skill, `claude-in-chrome` MCP, or `computer-use` MCP — first available.

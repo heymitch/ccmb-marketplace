@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Marketing Dashboard</title>
+<!-- ==========================================================================
+     REPLACE this :root + base block with the DETECTED design system.
+     Keep the data-k attributes and the <script> at the bottom unchanged.
+     The structure (funnel strip, email rows, source dots) is brand-neutral;
+     restyle freely, but every value stays bound to a contract key.
+     ========================================================================== -->
+<style>
+  :root{
+    --bg:#0a0908; --surface:#161311; --fg:#f4ecdd; --muted:#8a7e72;
+    --line:rgba(244,236,221,.12); --accent:#a5331f; --ok:#6f8a56; --warn:#c2703f;
+    --display:'Georgia',serif; --mono:ui-monospace,Menlo,monospace; --sans:system-ui,sans-serif;
+    --radius:3px;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sans)}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 24px}
+  nav{display:flex;justify-content:space-between;align-items:center;height:60px;border-bottom:1px solid var(--line)}
+  nav .stamp{font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em}
+  nav button{font-family:var(--mono);font-size:11px;color:var(--fg);background:transparent;
+    border:1px solid var(--line);border-radius:var(--radius);padding:6px 12px;cursor:pointer;text-transform:uppercase;letter-spacing:.12em}
+  header{padding:48px 0 32px;border-bottom:1px solid var(--line)}
+  header h1{font-family:var(--display);font-size:clamp(2rem,4vw,3rem);margin:0 0 8px}
+  header p{color:var(--muted);margin:0;max-width:60ch}
+  section{padding:48px 0;border-bottom:1px solid var(--line)}
+  .shead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .shead h2{font-family:var(--display);font-size:24px;margin:0}
+  .src{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);display:inline-flex;align-items:center;gap:8px}
+  .src .dot{width:6px;height:6px;border-radius:999px;background:var(--muted)}
+  .src.live .dot{background:var(--ok)} .src.pending .dot{background:var(--warn)}
+  .funnel{display:grid;grid-template-columns:repeat(6,1fr);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .step{padding:24px 18px;border-right:1px solid var(--line)}
+  .step:last-child{border-right:0}
+  .step .lab{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);display:block;margin-bottom:12px}
+  .step .n{font-family:var(--display);font-size:34px;line-height:1}
+  .step .n.muted{color:var(--muted)}
+  .step .d{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:8px}
+  .step .d .pct{color:var(--fg)}
+  .emails{border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  .erow{display:grid;grid-template-columns:60px 1fr repeat(4,1fr);padding:18px;border-bottom:1px solid var(--line);align-items:center}
+  .erow:last-child{border-bottom:0}
+  .erow .num{font-family:var(--mono);font-size:11px;color:var(--accent)}
+  .erow .n{font-family:var(--display);font-size:18px} .erow .n.muted{color:var(--muted)}
+  .erow .lab{font-family:var(--mono);font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;display:block}
+  @media(max-width:860px){.funnel{grid-template-columns:repeat(2,1fr)}.erow{grid-template-columns:50px 1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <strong>Marketing</strong>
+    <div style="display:flex;gap:16px;align-items:center">
+      <span class="stamp" id="stamp">Updated —</span>
+      <button id="logout" type="button">Sign out</button>
+    </div>
+  </nav>
+
+  <header>
+    <h1>Funnel overview</h1>
+    <p>Live marketing funnel. <code>—</code> means no connector wired yet; a number is real.</p>
+  </header>
+
+  <section>
+    <div class="shead">
+      <h2>Acquisition → conversion</h2>
+      <span class="src pending" id="src-funnel"><span class="dot"></span>source · pending</span>
+    </div>
+    <div class="funnel">
+      <div class="step"><span class="lab">Visits</span><div class="n muted" data-k="visits">—</div><div class="d"><span class="pct" data-k="visits_delta">—</span> all-time</div></div>
+      <div class="step"><span class="lab">Started</span><div class="n muted" data-k="quiz_started">—</div><div class="d"><span class="pct" data-k="start_rate">—</span> of visits</div></div>
+      <div class="step"><span class="lab">Completed</span><div class="n muted" data-k="quiz_completes">—</div><div class="d"><span class="pct" data-k="complete_rate">—</span> of starts</div></div>
+      <div class="step"><span class="lab">Opt-ins</span><div class="n muted" data-k="optins">—</div><div class="d"><span class="pct" data-k="optin_rate">—</span> of completes</div></div>
+      <div class="step"><span class="lab">Open to meet</span><div class="n muted" data-k="open_to_meet">—</div><div class="d"><span class="pct" data-k="otm_rate">—</span> of opt-ins</div></div>
+      <div class="step"><span class="lab">Booked</span><div class="n muted" data-k="booked">—</div><div class="d"><span class="pct" data-k="booked_rate">—</span> end-to-end</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="shead">
+      <h2>Email sequence</h2>
+      <span class="src pending" id="src-emails"><span class="dot"></span>source · pending</span>
+    </div>
+    <div class="emails" id="emails">
+      <!-- rows injected from contract d.emails -->
+    </div>
+  </section>
+</div>
+
+<script>
+const fmt = (n, t='int') =>
+  n == null || Number.isNaN(n) ? '—'
+  : t === 'pct1' ? (Math.round(n*1000)/10).toFixed(1)+'%'
+  : new Intl.NumberFormat('en-US').format(Math.round(n));
+
+const setText = (k, v) => document.querySelectorAll(`[data-k="${k}"]`).forEach(el => {
+  const first = el.firstChild;
+  if (first && first.nodeType === Node.TEXT_NODE) first.nodeValue = v + ' ';
+  else el.insertBefore(document.createTextNode(v + ' '), el.firstChild);
+  if (v !== '—') el.classList.remove('muted');
+});
+
+const setSrc = (id, s) => {
+  const el = document.getElementById(id); if (!el || !s) return;
+  el.className = 'src ' + s.status;
+  el.innerHTML = '<span class="dot"></span>' + s.note;
+};
+
+async function load() {
+  let d;
+  try {
+    const r = await fetch('/api/metrics', { credentials: 'same-origin' });
+    if (r.status === 401) { location = '/login'; return; }
+    d = await r.json();
+  } catch { return; }
+
+  const f = d.funnel || {};
+  for (const k of ['visits','quiz_started','quiz_completes','optins','open_to_meet','booked'])
+    setText(k, fmt(f[k]));
+  for (const k of ['visits_delta','start_rate','complete_rate','optin_rate','otm_rate','booked_rate'])
+    setText(k, f[k] != null ? fmt(f[k],'pct1') : '—');
+
+  const ec = document.getElementById('emails');
+  ec.innerHTML = (d.emails || []).map(e => `
+    <div class="erow">
+      <span class="num">E${e.num}</span>
+      <div><span class="lab">Email ${e.num}</span></div>
+      <div class="n ${e.delivered==null?'muted':''}">${fmt(e.delivered)}<span class="lab">delivered</span></div>
+      <div class="n ${e.open_rate==null?'muted':''}">${e.open_rate!=null?fmt(e.open_rate,'pct1'):'—'}<span class="lab">open</span></div>
+      <div class="n ${e.ctr==null?'muted':''}">${e.ctr!=null?fmt(e.ctr,'pct1'):'—'}<span class="lab">ctr</span></div>
+      <div class="n ${e.reply_rate==null?'muted':''}">${e.reply_rate!=null?fmt(e.reply_rate,'pct1'):'—'}<span class="lab">reply</span></div>
+    </div>`).join('');
+
+  const s = d.sources || {};
+  setSrc('src-funnel', s.funnel);
+  setSrc('src-emails', s.emails);
+
+  const t = d.updated_at ? new Date(d.updated_at) : new Date();
+  document.getElementById('stamp').textContent =
+    'Updated ' + t.toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+}
+
+document.getElementById('logout').addEventListener('click', async () => {
+  await fetch('/api/logout', { method:'POST', credentials:'same-origin' });
+  location = '/login';
+});
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "lead-research",
+  "version": "1.0.0",
+  "description": "Enrich opt-in lead lists from organic content into a confidence-rated, research-backed CSV with org/role/contact fields, LinkedIn/X handles, and one-sentence personalized openers. Prefers a connected CRM or paid enrichment connector when present; otherwise uses native web research via parallel agents. NOT for sending or CRM-write automation, NOT for response triage.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "license": "Personal/purchaser use only",
+  "keywords": [
+    "lead-research",
+    "lead-enrichment",
+    "csv-enrichment",
+    "contacts",
+    "personalized-openers",
+    "crm",
+    "organic-leads",
+    "opt-in",
+    "parallel-agents"
+  ]
+}
