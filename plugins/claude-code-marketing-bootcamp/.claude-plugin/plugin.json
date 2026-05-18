@@ -1,0 +1,26 @@
+{
+  "name": "claude-code-marketing-bootcamp",
+  "version": "1.0.0",
+  "description": "The complete Claude Code Marketing Bootcamp toolkit. 24 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards — plus Voice Lab (10-skill voice training), campaign planning, skyscraper research, and a supply-chain install shield. Say what you want; Claude runs the right skill.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/",
+  "license": "Personal/purchaser use only. Not for redistribution.",
+  "keywords": [
+    "ccmb", "marketing", "landing-page", "lead-magnet", "free-tool",
+    "lead-research", "email-nurture", "dashboard", "voice-lab",
+    "campaign", "vercel", "supabase", "convertkit", "bootcamp"
+  ],
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/vibe-code-detector.sh" }
+        ]
+      }
+    ]
+  }
+}

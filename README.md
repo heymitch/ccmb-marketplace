@@ -1,6 +1,6 @@
 # Claude Code Marketing Bootcamp — Plugin Marketplace
 
-Everything you build in the bootcamp ships as a Claude Code plugin. Install the marketplace once, install the plugins you need, then just tell Claude what you want — it runs the right skill.
+One plugin. 24 skills. The complete marketing-funnel toolkit you build across the bootcamp, plus Voice Lab, campaign planning, and a supply-chain install shield — all under a single install.
 
 ## Install
 
@@ -8,91 +8,56 @@ In Claude Code (or the Code tab in Claude Desktop):
 
 ```
 /plugin marketplace add heymitch/ccmb-marketplace
+/plugin install claude-code-marketing-bootcamp@ccmb-marketplace
 ```
 
-Then install any plugin:
-
-```
-/plugin install landing-page-builder@ccmb-marketplace
-```
-
-Then **just say what you want** — Claude picks the right skill from the plugin automatically:
+That's it. One plugin, everything included. Then just tell Claude what you want:
 
 ```
 build my landing page
 ```
 
-That's the loop: add the marketplace, install a plugin, tell Claude what to do.
+Claude picks the right skill automatically. No slash commands to memorize.
 
-> **On slash commands:** plugin skills are namespaced as `/<plugin>:<skill>` (e.g. `/landing-page-builder:landing-page`) — there's no bare `/landing-page`. You rarely need the slash form; natural language is the intended way to invoke these. The slash is the explicit escape hatch when you want to force a specific skill.
+> **On slash commands:** plugin skills are namespaced as `/claude-code-marketing-bootcamp:<skill>` (e.g. `/claude-code-marketing-bootcamp:landing-page`). You rarely need the slash form — natural language is the intended way to invoke these. The slash is the explicit escape hatch when you want to force a specific skill.
 
-## The six core plugins
+## What's inside
 
-These are the assets you build across the bootcamp's six sessions. Install them as you go, or all at once.
+### The funnel (six bootcamp sessions)
 
-| Plugin | Just say… | What it builds |
+| Skill | Just say… | Builds |
 |---|---|---|
-| `landing-page-builder` | "build my landing page" | A high-converting landing or sales page — offer stack, 11-section copy structure, 15-question FAQ, distinctive design, deployed to a live Vercel URL. |
-| `lead-magnet-launch-system` | "build my lead magnet" | A complete lead magnet funnel — idea, name, mockup, landing copy, onboarding sequence, promo email, the asset itself, opt-in wired and delivering. |
-| `free-tool` | "build a free tool" / "make a quiz" | A deployable lead-magnet mini-app — quiz, calculator, assessment, or diagnostic — engineered ungameable and shareable with a tiered opt-in funnel. |
-| `lead-research` | "enrich my lead list" | An opt-in list enriched into a confidence-rated CSV — org, role, contact, LinkedIn/X, and a one-sentence personalized opener per lead. |
-| `email-nurture` | "build my nurture sequence" | Multi-email nurture sequences — research-nurture (book 1:1s) or FOMO sales (convert a list), with AI-pattern cleanse and a no-hallucination grounding pass. |
-| `marketing-dashboard-kit` | "build my marketing dashboard" | A password-protected analytics dashboard — Supabase data layer, your design system, deployed behind auth on Vercel. |
+| `landing-page` (+ `frontend-design`) | "build my landing page" | High-converting landing/sales page — offer stack, 11-section copy, 15-question FAQ, distinctive design, live Vercel URL |
+| `lead-magnet` | "build my lead magnet" | Full lead-magnet funnel — idea → asset → opt-in wired and delivering |
+| `free-tool-builder` | "build a free tool" / "make a quiz" | Deployable quiz/calculator/assessment with a tiered opt-in funnel |
+| `lead-research` | "enrich my lead list" | Opt-in list → confidence-rated CSV with org/role/contact + personalized openers |
+| `email-nurture` | "build my nurture sequence" | Research-nurture or FOMO-sales sequences, AI-pattern cleansed, grounded against your source-of-truth |
+| `build-dashboard-ui`, `dashboard-data-layer`, `deploy-gated-site`, `discover-connectors`, `supabase-sql` | "build my marketing dashboard" | Password-protected analytics dashboard — Supabase data layer, your design system, deployed behind auth |
 
-Install all six:
+**Session map:** S1 → `landing-page` · S2 → `lead-magnet` · S3 → `free-tool-builder` · S4 → `lead-research` · S5 → `email-nurture` · S6 → the five `dashboard`/`deploy`/`supabase` skills.
 
-```
-/plugin install landing-page-builder@ccmb-marketplace
-/plugin install lead-magnet-launch-system@ccmb-marketplace
-/plugin install free-tool@ccmb-marketplace
-/plugin install lead-research@ccmb-marketplace
-/plugin install email-nurture@ccmb-marketplace
-/plugin install marketing-dashboard-kit@ccmb-marketplace
-```
+### Voice Lab (10 skills)
 
-### How they map to the bootcamp sessions
+`voice-training` (orchestrator) · `voice-dna-extractor` · `archetype-analyzer` · `vocabulary-analyzer` · `sentence-fingerprint` · `quirk-injector` · `tone-grid-calibrator` · `mimic-and-modify` · `voice-template-compiler` · `voice-tutor`
 
-The plugins are named for what they do, not what session they're in — so you can reuse them on any campaign forever. For reference, the bootcamp covers them in this order:
+Say "train my voice" — produces a Voice Template every content skill reads automatically.
 
-- **Session 1** → `landing-page-builder`
-- **Session 2** → `lead-magnet-launch-system`
-- **Session 3** → `free-tool`
-- **Session 4** → `lead-research`
-- **Session 5** → `email-nurture`
-- **Session 6** → `marketing-dashboard-kit`
+### Operator skills
 
-## The four bonus plugins
-
-| Plugin | Just say… | What it does |
+| Skill | Just say… | Does |
 |---|---|---|
-| `voice-lab` | "train my voice" | Trains Claude Code to write in your voice. Outputs a Voice Template every content plugin reads automatically. |
-| `campaign-brainstorm` | "brainstorm a launch" | Dual-mode launch-campaign brief generator. Produces a structured brief downstream plugins consume. |
-| `skyscraper` | "scan for existing solutions" | Scans for existing solutions (native skills, Apify, Reddit, YouTube) before you vibe-code something from scratch. Run `/skyscraper:skyscraper-setup` once after install. |
-| `safe-install` | "safely install \<package\>" | A safety shield for `npm` / CLI installs — publish-date checks, CVE lookups, version pinning. Recommended before any package install. |
-
-```
-/plugin install voice-lab@ccmb-marketplace
-/plugin install campaign-brainstorm@ccmb-marketplace
-/plugin install skyscraper@ccmb-marketplace
-/plugin install safe-install@ccmb-marketplace
-```
-
-## Recommended order
-
-1. `safe-install` — install first so every later package install is shielded
-2. `voice-lab` — train your voice before you generate any copy
-3. `landing-page-builder` → `lead-magnet-launch-system` → `free-tool` → `lead-research` → `email-nurture` → `marketing-dashboard-kit` — the funnel, in build order
-4. `campaign-brainstorm` — when you're ready to run a full launch
-5. `skyscraper` — any time you're about to build something custom
+| `campaign-brainstorm` | "brainstorm a launch" | Dual-mode campaign brief generator; output feeds the funnel skills |
+| `skyscraper` | "scan for existing solutions" | Checks native skills / Apify / Reddit / YouTube before you build from scratch. Auto-nudges on vibe-code intent via a built-in hook. Run `/claude-code-marketing-bootcamp:skyscraper-setup` once after install. |
+| `safe-install` | "safely install \<package\>" | npm/CLI shield — publish-date checks, CVE lookups, version pinning. Auto-active via the bundled `safe-npm` once enabled. |
 
 ## Requirements
 
 - Claude Desktop (Code tab) or Claude Code CLI
 - A Vercel account connected as a Claude connector (deploys)
-- A Supabase account (used by `free-tool` and `marketing-dashboard-kit`)
-- An email service provider — Kit (ConvertKit) is canonical; Substack and others are supported as adapters
+- A Supabase account (used by `free-tool-builder` and the dashboard skills)
+- An email service provider — Kit (ConvertKit) canonical; Substack and others as adapters
 
-Pre-work for each session walks you through any account setup before you need it.
+Each session's pre-work walks you through account setup before you need it.
 
 ## Updating
 
@@ -100,8 +65,8 @@ Pre-work for each session walks you through any account setup before you need it
 /plugin marketplace update ccmb-marketplace
 ```
 
-Pulls the latest version of every plugin. Backwards-compatible fixes ship straight to `main`; breaking changes bump the plugin version.
+Backwards-compatible fixes ship straight to `main`; breaking changes bump the plugin version.
 
 ---
 
-*Maintainers: see [`MAINTAINERS.md`](./MAINTAINERS.md) for the campaign-status kill-switch, versioning policy, and release process.*
+*Maintainers: see [`MAINTAINERS.md`](./MAINTAINERS.md) for the campaign-status kill-switch, the consolidated-plugin layout, and the release checklist.*

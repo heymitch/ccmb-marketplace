@@ -5,70 +5,16 @@
     "email": "mitch@ship30for30.com"
   },
   "metadata": {
-    "description": "The Claude Code Marketing Bootcamp plugin marketplace. Six session plugins that build a complete marketing funnel + four bonus operator plugins.",
-    "version": "1.0.0",
+    "description": "The Claude Code Marketing Bootcamp marketplace. One plugin, 24 skills: the full marketing-funnel toolkit plus Voice Lab, campaign planning, skyscraper research, and a supply-chain install shield.",
+    "version": "2.0.0",
     "homepage": "https://claudecodemarketingbootcamp.com/"
   },
   "plugins": [
     {
-      "name": "landing-page-builder",
-      "source": "./plugins/landing-page-builder",
-      "description": "Build and deploy a high-converting landing or sales page \u2014 offer stack, the proven 11-section LTO copy structure, a 15-question FAQ, distinctive design via the bundled frontend-design skill, images, and a live Vercel URL. Walks you through it section by section with approval gates. Lead-magnet and full sales-page modes.",
+      "name": "claude-code-marketing-bootcamp",
+      "source": "./plugins/claude-code-marketing-bootcamp",
+      "description": "The complete Claude Code Marketing Bootcamp toolkit. 24 skills that build and deploy a full marketing funnel \u2014 landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards \u2014 plus Voice Lab (10-skill voice training), campaign planning, skyscraper research, and a supply-chain install shield. Say what you want; Claude runs the right skill.",
       "version": "1.0.0"
-    },
-    {
-      "name": "lead-magnet-launch-system",
-      "source": "./plugins/lead-magnet-launch-system",
-      "description": "Claude Code-native Lead Magnet Launch System. Runs all 8 steps \u2014 idea, name, mockup, landing copy, preview, onboarding sequence, promo email, build the asset \u2014 then wires the opt-in and delivers. Kit (ConvertKit) canonical; Substack and other providers as adapters.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "free-tool",
-      "source": "./plugins/free-tool",
-      "description": "Build a Free Tool \u2014 a deployable lead-magnet mini-app (quiz, calculator, assessment, or diagnostic) engineered as an ungameable, shareable research instrument with a tiered opt-in funnel. Builds on the Supabase+SQL storage provisioned by the lead-magnet skill.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "lead-research",
-      "source": "./plugins/lead-research",
-      "description": "Enrich opt-in lead lists from organic content into a confidence-rated, research-backed CSV with org/role/contact fields, LinkedIn/X handles, and one-sentence personalized openers. Prefers a connected CRM or paid enrichment connector when present; otherwise uses native web research via parallel agents. NOT for sending or CRM-write automation, NOT for response triage.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "email-nurture",
-      "source": "./plugins/email-nurture",
-      "description": "Builds multi-email nurture sequences with two arcs: research-nurture (convert opt-ins into booked 1:1 conversations) and Ship 30 FOMO sales (convert a list into product purchases via the proven 7-email framework). Genre-lock preflight, AI-pattern cleanse, a grounding pass against the product's source-of-truth artifact, no-hallucination HOLD shells, verbatim FOMO templates + subject-line rules, plus companion artifacts. NOT for quiz/lead-magnet creation, standalone generic copywriting, or dashboard implementation.",
-      "version": "1.1.0"
-    },
-    {
-      "name": "marketing-dashboard-kit",
-      "source": "./plugins/marketing-dashboard-kit",
-      "description": "Build a password-protected marketing analytics dashboard end-to-end: discover which platforms you pull analytics from and whether native connectors exist, stand up a safe Supabase data layer with SECURITY DEFINER aggregates, build a dashboard that matches your own design system, and deploy it behind a password on Vercel. Built for the Claude Code Marketing Bootcamp.",
-      "version": "0.1.0"
-    },
-    {
-      "name": "voice-lab",
-      "source": "./plugins/voice-lab",
-      "description": "Train Claude Code to write like you. Run /voice-training (or any of the 8 sub-skills) to extract your Voice DNA, archetype mix, vocabulary lists, sentence fingerprint, quirks, and tone grid. Compiles into a Voice Template at voice/voice-template.md that every CCMB content skill reads automatically. Based on the Digital Writers Voice Lab by Nicolas Cole and Dickie Bush.",
-      "version": "2.1.0"
-    },
-    {
-      "name": "campaign-brainstorm",
-      "source": "./plugins/campaign-brainstorm",
-      "description": "Dual-mode campaign-planning interview for CCMB graduates. Smart mode reads existing context (CLAUDE.md, voice, MCPs, deps) and asks ~6-8 questions for missing fields. Workshop mode walks 5 framework layers (~15 questions). Produces campaigns/<slug>/brief.md with YAML frontmatter for downstream auto-read. MarTech section is Claude-native \u2014 uses installed MCPs/skills, never defaults to paid SaaS.",
-      "version": "0.1.0"
-    },
-    {
-      "name": "skyscraper",
-      "source": "./plugins/skyscraper",
-      "description": "Scan existing skyscrapers (native skills, Apify, Reddit, YouTube) before vibe-coding from scratch. 5th CCMB bonus plugin.",
-      "version": "0.1.0"
-    },
-    {
-      "name": "safe-install",
-      "source": "./plugins/safe-install",
-      "description": "Benevolent shield for npm / CLI installs. Students type `/safe-install <pkg>` and the plugin handles publish-date checks, CVE lookups, lifecycle-hook defang, and version pinning automatically. Reads live campaign status from heymitch/ccmb-marketplace so the shield relaxes globally the moment Mitch flips it off.",
-      "version": "0.1.0"
     }
   ]
 }

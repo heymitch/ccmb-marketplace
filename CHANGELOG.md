@@ -2,6 +2,21 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [2.0.0] — 2026-05-18
+
+Consolidated 10 plugins into ONE: `claude-code-marketing-bootcamp` (the compound-engineering model). Students now run two commands total — add marketplace, install one plugin — and get all 24 skills.
+
+### Changed
+- **Single plugin.** All 24 skills now live in `plugins/claude-code-marketing-bootcamp/skills/`. `marketplace.json` lists one plugin. One menu entry, one namespace (`claude-code-marketing-bootcamp:<skill>`), natural-language invocation primary.
+- **Every skill moved as a whole directory** — `references/`, `assets/`, `PLAYBOOK.md`, `PATTERNS.md`, `SCHEMA.md` all preserved. Verified inventory: `landing-page` (4 refs), `email-nurture` (3 refs + FOMO templates), `voice-tutor` (12 lesson files), `campaign-brainstorm` (6 refs), `skyscraper` (4 refs), `supabase-sql` (2 refs), `dashboard-data-layer`/`deploy-gated-site`/`build-dashboard-ui` (assets), `free-tool-builder`/`lead-magnet`/`lead-research` (playbooks). No SKILL-only regressions.
+- **Plugin-root machinery migrated** to the consolidated plugin root: `safe-install`'s `bin/` (auto-PATH) + `config/`, `skyscraper`'s `hooks/` + `skyscraper-setup` command + `.env.example`.
+
+### Fixed
+- **skyscraper hook path bug.** The pre-consolidation skyscraper plugin declared its UserPromptSubmit hook with `${PLUGIN_DIR}` — a variable Claude Code does not resolve, so the vibe-code auto-nudge was silently dead. Merged manifest uses the correct `${CLAUDE_PLUGIN_ROOT}`.
+
+### Removed
+- The 10 separate plugin directories (`landing-page-builder`, `free-tool`, `voice-lab`, `safe-install`, …) and their redundant per-plugin READMEs. Session/plugin mapping lives in the README only.
+
 ## [1.0.0] — 2026-05-18
 
 First real marketplace release. The repo is now an installable Claude Code plugin marketplace, not a raw-file CDN.
