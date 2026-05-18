@@ -9,10 +9,9 @@ Internal operations for the CCMB marketplace. Students never read this — see `
   marketplace.json        ← marketplace manifest. ONE plugin entry.
 plugins/
   claude-code-marketing-bootcamp/
-    .claude-plugin/plugin.json   ← plugin manifest (name + inline hooks block)
+    .claude-plugin/plugin.json   ← plugin manifest (name + metadata only)
     skills/<name>/SKILL.md       ← 24 skills, each with its own references/assets intact
-    commands/skyscraper-setup.md ← the one legit command (one-time setup entrypoint)
-    hooks/vibe-code-detector.sh  ← UserPromptSubmit hook (skyscraper auto-nudge)
+    commands/skyscraper-setup.md ← the one command (skyscraper key/status check)
     bin/safe-npm + bin/lib/*.py  ← auto-added to PATH when plugin enabled (safe-install)
     config/campaign-status.json  ← offline fallback for the shield
     .env.example
@@ -29,11 +28,12 @@ Decided 2026-05-18. The expiring bonuses (Campaign Pack, Vibe Workshop) are hand
 
 ## Plugin-root machinery (NOT skills)
 
-Three components are plugin-root, auto-discovered when the plugin is enabled — they can't live in `skills/`:
+Two components are plugin-root, auto-discovered when the plugin is enabled — they can't live in `skills/`:
 
 - **`bin/`** — `safe-npm` + `bin/lib/*.py`. Claude Code auto-adds `bin/` to PATH. No manifest reference needed.
-- **`hooks/vibe-code-detector.sh`** — wired via the inline `hooks` block in `plugin.json` (UserPromptSubmit, matcher `.*`). The hook command path uses **`${CLAUDE_PLUGIN_ROOT}`** — the correct variable. (The pre-consolidation skyscraper plugin used `${PLUGIN_DIR}`, which does not resolve; fixed during the merge. If the auto-nudge ever stops firing, check this variable first.)
 - **`config/campaign-status.json`** — offline fallback. The live root copy wins when reachable (see below).
+
+> **No `UserPromptSubmit` hook.** The pre-consolidation skyscraper plugin shipped a `vibe-code-detector.sh` hook that nudged toward `/skyscraper` on every build-intent prompt. It was removed 2026-05-18 — the matcher (`.*`) + broad regex fired on essentially every legitimate bootcamp prompt ("build my landing page"), which is friction for beginners, not protection (it was a habit nudge, not an injection guard). `skyscraper` remains as an on-demand skill. Do not re-add an always-on hook to the consolidated plugin without a much narrower matcher and a documented pedagogical reason.
 
 ## The campaign-status kill-switch (for `safe-install`)
 
@@ -71,7 +71,7 @@ https://raw.githubusercontent.com/heymitch/ccmb-marketplace/main/campaign-status
 - [ ] `python3 -m json.tool plugins/claude-code-marketing-bootcamp/.claude-plugin/plugin.json` parses
 - [ ] `marketplace.json` `source` resolves to the real plugin dir
 - [ ] Every skill folder still has its `references/`/`assets/` (no SKILL-only regressions on skills that had support files — see CHANGELOG 2.0.0 for the inventory)
-- [ ] `hooks/vibe-code-detector.sh` is executable (`chmod +x`) and the manifest hook path uses `${CLAUDE_PLUGIN_ROOT}`
 - [ ] `bin/safe-npm` is executable
+- [ ] `plugin.json` has NO `hooks` key (no always-on UserPromptSubmit hook in the bootcamp plugin)
 - [ ] README tables match the actual skill set
 - [ ] `campaign-status.json` `last_updated` current if policy changed

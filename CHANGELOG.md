@@ -2,6 +2,11 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [2.0.1] — 2026-05-18
+
+### Removed
+- **The always-on `UserPromptSubmit` hook** (`hooks/vibe-code-detector.sh`) and the `hooks` block from `plugin.json`. With `matcher: ".*"` and a build-verb + marketing-noun regex, it fired on essentially every legitimate bootcamp prompt ("build my landing page", "create my email sequence") — friction for beginners, not an injection guard. `skyscraper` stays as an on-demand skill (invoke deliberately when about to build something custom); `/claude-code-marketing-bootcamp:skyscraper-setup` still works. README + MAINTAINERS updated.
+
 ## [2.0.0] — 2026-05-18
 
 Consolidated 10 plugins into ONE: `claude-code-marketing-bootcamp` (the compound-engineering model). Students now run two commands total — add marketplace, install one plugin — and get all 24 skills.

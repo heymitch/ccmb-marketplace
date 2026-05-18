@@ -47,7 +47,7 @@ Say "train my voice" — produces a Voice Template every content skill reads aut
 | Skill | Just say… | Does |
 |---|---|---|
 | `campaign-brainstorm` | "brainstorm a launch" | Dual-mode campaign brief generator; output feeds the funnel skills |
-| `skyscraper` | "scan for existing solutions" | Checks native skills / Apify / Reddit / YouTube before you build from scratch. Auto-nudges on vibe-code intent via a built-in hook. Run `/claude-code-marketing-bootcamp:skyscraper-setup` once after install. |
+| `skyscraper` | "scan for existing solutions" | On-demand: checks native skills / Apify / Reddit / YouTube before you build something from scratch. Run it when you're about to build a custom tool. `/claude-code-marketing-bootcamp:skyscraper-setup` shows which optional API keys are active. |
 | `safe-install` | "safely install \<package\>" | npm/CLI shield — publish-date checks, CVE lookups, version pinning. Auto-active via the bundled `safe-npm` once enabled. |
 
 ## Requirements
