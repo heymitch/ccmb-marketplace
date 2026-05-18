@@ -1,6 +1,6 @@
 # Claude Code Marketing Bootcamp — Plugin Marketplace
 
-Everything you build in the bootcamp ships as a Claude Code plugin. Install the marketplace once, then install the plugins you need. Each one is a slash command that builds and deploys a real marketing asset.
+Everything you build in the bootcamp ships as a Claude Code plugin. Install the marketplace once, install the plugins you need, then just tell Claude what you want — it runs the right skill.
 
 ## Install
 
@@ -16,26 +16,28 @@ Then install any plugin:
 /plugin install landing-page-builder@ccmb-marketplace
 ```
 
-Then run it:
+Then **just say what you want** — Claude picks the right skill from the plugin automatically:
 
 ```
-/landing-page
+build my landing page
 ```
 
-That's the whole loop. Add the marketplace, install a plugin, run the command.
+That's the loop: add the marketplace, install a plugin, tell Claude what to do.
+
+> **On slash commands:** plugin skills are namespaced as `/<plugin>:<skill>` (e.g. `/landing-page-builder:landing-page`) — there's no bare `/landing-page`. You rarely need the slash form; natural language is the intended way to invoke these. The slash is the explicit escape hatch when you want to force a specific skill.
 
 ## The six core plugins
 
 These are the assets you build across the bootcamp's six sessions. Install them as you go, or all at once.
 
-| Plugin | Command | What it builds |
+| Plugin | Just say… | What it builds |
 |---|---|---|
-| `landing-page-builder` | `/landing-page` | A high-converting landing or sales page — offer stack, 11-section copy structure, 15-question FAQ, distinctive design, deployed to a live Vercel URL. |
-| `lead-magnet-launch-system` | `/lead-magnet` | A complete lead magnet funnel — idea, name, mockup, landing copy, onboarding sequence, promo email, the asset itself, opt-in wired and delivering. |
-| `free-tool` | `/free-tool` | A deployable lead-magnet mini-app — quiz, calculator, assessment, or diagnostic — engineered ungameable and shareable with a tiered opt-in funnel. |
-| `lead-research` | `/lead-research` | An opt-in list enriched into a confidence-rated CSV — org, role, contact, LinkedIn/X, and a one-sentence personalized opener per lead. |
-| `email-nurture` | `/email-nurture` | Multi-email nurture sequences — research-nurture (book 1:1s) or FOMO sales (convert a list), with AI-pattern cleanse and a no-hallucination grounding pass. |
-| `marketing-dashboard-kit` | `/build-dashboard` | A password-protected analytics dashboard — Supabase data layer, your design system, deployed behind auth on Vercel. |
+| `landing-page-builder` | "build my landing page" | A high-converting landing or sales page — offer stack, 11-section copy structure, 15-question FAQ, distinctive design, deployed to a live Vercel URL. |
+| `lead-magnet-launch-system` | "build my lead magnet" | A complete lead magnet funnel — idea, name, mockup, landing copy, onboarding sequence, promo email, the asset itself, opt-in wired and delivering. |
+| `free-tool` | "build a free tool" / "make a quiz" | A deployable lead-magnet mini-app — quiz, calculator, assessment, or diagnostic — engineered ungameable and shareable with a tiered opt-in funnel. |
+| `lead-research` | "enrich my lead list" | An opt-in list enriched into a confidence-rated CSV — org, role, contact, LinkedIn/X, and a one-sentence personalized opener per lead. |
+| `email-nurture` | "build my nurture sequence" | Multi-email nurture sequences — research-nurture (book 1:1s) or FOMO sales (convert a list), with AI-pattern cleanse and a no-hallucination grounding pass. |
+| `marketing-dashboard-kit` | "build my marketing dashboard" | A password-protected analytics dashboard — Supabase data layer, your design system, deployed behind auth on Vercel. |
 
 Install all six:
 
@@ -61,12 +63,12 @@ The plugins are named for what they do, not what session they're in — so you c
 
 ## The four bonus plugins
 
-| Plugin | Command | What it does |
+| Plugin | Just say… | What it does |
 |---|---|---|
-| `voice-lab` | `/voice-training` | Trains Claude Code to write in your voice. Outputs a Voice Template every content plugin reads automatically. |
-| `campaign-brainstorm` | `/campaign-brainstorm` | Dual-mode launch-campaign brief generator. Produces a structured brief downstream plugins consume. |
-| `skyscraper` | `/skyscraper` | Scans for existing solutions (native skills, Apify, Reddit, YouTube) before you vibe-code something from scratch. |
-| `safe-install` | `/safe-install` | A safety shield for `npm` / CLI installs — publish-date checks, CVE lookups, version pinning. Recommended before any package install. |
+| `voice-lab` | "train my voice" | Trains Claude Code to write in your voice. Outputs a Voice Template every content plugin reads automatically. |
+| `campaign-brainstorm` | "brainstorm a launch" | Dual-mode launch-campaign brief generator. Produces a structured brief downstream plugins consume. |
+| `skyscraper` | "scan for existing solutions" | Scans for existing solutions (native skills, Apify, Reddit, YouTube) before you vibe-code something from scratch. Run `/skyscraper:skyscraper-setup` once after install. |
+| `safe-install` | "safely install \<package\>" | A safety shield for `npm` / CLI installs — publish-date checks, CVE lookups, version pinning. Recommended before any package install. |
 
 ```
 /plugin install voice-lab@ccmb-marketplace
