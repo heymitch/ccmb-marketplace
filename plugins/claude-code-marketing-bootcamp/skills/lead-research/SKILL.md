@@ -43,6 +43,7 @@ to a CRM.
 ## Workflow (orchestrator)
 
 ```
+0. CONFIG     → read the working dir's CLAUDE.md; load the voice archetype, ICP/targeting, and opener-style it points to (steer SEGMENT + OPEN). Absent → defaults.
 1. DETECT     → what connectors exist? (decision table below)
 2. LOCK       → fix the CSV schema BEFORE any research (see SCHEMA.md)
 3. SEGMENT    → split the population into 3–6 segments
@@ -52,6 +53,19 @@ to a CRM.
 7. OPEN       → add personalized openers only where a specific artifact exists
 8. RATE       → confidence high/med/low on every row; never leave blank
 ```
+
+### Step 0 — Working-dir config (steers the run)
+
+The skill runs in the user's working folder, so its `CLAUDE.md` is already in
+context. Read it first and honor any pointers it gives to:
+
+- **Voice archetype** + **opener-style** → used in Step 7 (openers).
+- **ICP / targeting** (signals, qualify/exclude, segments) → used for SEGMENT
+  (Step 3) and the agent criteria (Step 4) instead of asking.
+
+This config is the **user's**, kept in their folder — never inside the plugin —
+so marketplace updates can't overwrite it. If `CLAUDE.md` points to nothing,
+fall back to the defaults in this skill.
 
 ### Step 1 — Connector routing decision table
 

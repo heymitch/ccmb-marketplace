@@ -44,8 +44,9 @@ Field rules:
 - linkedin: find via web SEARCH ("[name] LinkedIn [org]"); take the URL from
   the result snippet. Do NOT open LinkedIn pages. "none found" if absent.
 - personalized_opener: ONE sentence citing a SPECIFIC artifact of theirs (a
-  named book/essay/episode/product). If you cannot find a specific artifact,
-  leave it BLANK — do not write generic flattery.
+  named book/essay/episode/product), in the voice/opener-style the orchestrator
+  passes from the working-dir config (Step 0). If you cannot find a specific
+  artifact, leave it BLANK — do not write generic flattery.
 - confidence: high / med / low per the rubric (publicly-verified = high;
   form-only or inferred email or thin signal = med; unconfirmed = low).
 - Confirm the person is CURRENT (not departed/deceased) before high.
@@ -90,6 +91,11 @@ formats and LinkedIn URLs), run quick `WebSearch` checks yourself:
 ---
 
 ## Step 7 — Personalized openers (only if requested)
+
+**Voice comes from the working dir, not from here.** Use the voice archetype +
+opener-style the working-dir `CLAUDE.md` points to (loaded in Step 0). The
+formula below is the *fallback* when no voice config is present: it fixes the
+structure; the user's config fixes the tone.
 
 The opener is the highest-leverage cell and the easiest to ruin.
 
