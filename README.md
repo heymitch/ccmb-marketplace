@@ -11,6 +11,8 @@ In Claude Code (or the Code tab in Claude Desktop):
 /plugin install claude-code-marketing-bootcamp@ccmb-marketplace
 ```
 
+**One-time: turn on auto-updates** so new skills reach you automatically. Run `/plugin`, open the **Marketplaces** tab, select `ccmb-marketplace`, and choose **Enable auto-update**. From then on the bootcamp refreshes at startup — when there's an update you'll just be prompted to run `/reload-plugins`. (Skip this and you'll need to update manually — see [Updating](#updating).)
+
 That's it — one install, all 28 skills. Then just tell Claude what you want:
 
 ```
@@ -68,11 +70,16 @@ Each session's pre-work walks you through account setup before you need it.
 
 ## Updating
 
+**If you enabled auto-update** (see [Install](#install)): nothing to do. New skills arrive at startup; you'll be prompted to run `/reload-plugins`.
+
+**Manual update** (two steps):
+
 ```
 /plugin marketplace update ccmb-marketplace
+/plugin reload-plugins
 ```
 
-This refreshes the marketplace listing **in place** — do NOT remove and re-add (that creates a duplicate marketplace entry). Backwards-compatible fixes ship straight to `main`; breaking changes bump the plugin version.
+The first refreshes the marketplace catalog **in place**; the second loads the new plugin version. Do NOT remove and re-add the marketplace — that creates a duplicate entry instead of refreshing. Backwards-compatible fixes ship straight to `main`; breaking changes bump the plugin version. Because everything lives in **one plugin with a stable name**, a version bump delivers every new skill to existing installs automatically — no need to install anything extra.
 
 ---
 
