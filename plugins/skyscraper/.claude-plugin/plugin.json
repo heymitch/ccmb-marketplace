@@ -1,0 +1,12 @@
+{
+  "name": "skyscraper",
+  "version": "1.0.0",
+  "description": "Scan existing solutions before you build from scratch. Given a marketing problem, Skyscraper fans out parallel scouts across native Claude skills, the Apify Store, Reddit, and YouTube, then returns a ranked report of what already exists and how to clone or adapt it. Run it whenever you're about to vibe-code a custom tool. Includes the skyscraper-setup command to show which optional API keys are active.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/",
+  "license": "Personal/purchaser use only. Not for redistribution.",
+  "keywords": ["skyscraper", "research", "competitive", "apify", "reddit", "youtube", "pre-build", "scout"]
+}

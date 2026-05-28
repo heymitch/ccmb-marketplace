@@ -1,0 +1,12 @@
+{
+  "name": "funnel-hack",
+  "version": "1.0.0",
+  "description": "Reverse-engineer a competitor's funnel and adapt it to your brand. Funnel-hack runs a structured competitor teardown — reads your working-dir brand config (mission, voice, ICP, offer ladder), then produces a steal / differentiate / content-ideas playbook snapped to YOUR positioning, not generic advice. Use for competitor teardowns, funnel reverse-engineering, and turning what works for others into draft-ready moves for you.",
+  "author": {
+    "name": "Mitch Harris",
+    "email": "mitch@ship30for30.com"
+  },
+  "homepage": "https://claudecodemarketingbootcamp.com/",
+  "license": "Personal/purchaser use only. Not for redistribution.",
+  "keywords": ["funnel-hack", "competitor-analysis", "teardown", "reverse-engineering", "competitive", "swipe"]
+}

@@ -2,6 +2,18 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [2.2.0] — 2026-05-28
+
+### Changed
+- **Branched Skyscraper and Funnel Hack out of the core plugin into their own plugins** (same marketplace), matching the Browser Monkey pattern. The marketplace now hosts **four plugins**: `claude-code-marketing-bootcamp` (core, now 23 skills, v1.2.0) + `skyscraper` (v1.0.0) + `funnel-hack` (v1.0.0) + `browser-monkey` (v0.1.0).
+  - **`skyscraper`** — carries its 5 scout sub-skills, 4 references, and the `/skyscraper-setup` command. `git mv` preserved history.
+  - **`funnel-hack`** — carries its `PLAYBOOK.md` + `REPORT-TEMPLATE.md`.
+- **Voice Lab stays in core** (deliberate). It feeds the writing system — `campaign-brainstorm` reads `voice/voice-template.md` opportunistically — so it's bootcamp-integral, not a standalone bonus. Splitting it would weaken the one-install writing experience with no upside.
+- Core plugin description + keywords updated to drop skyscraper/funnel-hack (now separate). Marketplace metadata + README reframed around "core toolkit + 3 optional power-tools."
+
+### Why split
+GUI install makes multi-plugin zero-friction: students paste `heymitch/ccmb-marketplace` once, then click-install any plugin from the list. So the split is pure upside — independent versioning + standalone usefulness for the three power-tools — without breaking the one-marketplace-add onboarding. Dependency check confirmed all three split cleanly (only `campaign-brainstorm` reads Voice Lab output, and it degrades gracefully).
+
 ## [2.1.0] — 2026-05-28
 
 ### Added

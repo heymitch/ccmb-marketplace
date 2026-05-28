@@ -1,6 +1,6 @@
 # Claude Code Marketing Bootcamp — Plugin Marketplace
 
-Two plugins. The complete marketing-funnel toolkit (25 skills) plus **Browser Monkey**, a two-phase browser-automation bonus for pulling analytics from no-API dashboards.
+Four plugins in one marketplace. The core marketing-funnel toolkit (23 skills) plus three optional power-tools — **Skyscraper** (pre-build research), **Funnel Hack** (competitor teardown), and **Browser Monkey** (no-API analytics via browser automation).
 
 ## Install
 
@@ -11,9 +11,11 @@ In Claude Code (or the Code tab in Claude Desktop):
 /plugin install claude-code-marketing-bootcamp@ccmb-marketplace
 ```
 
-That's the core toolkit. Optional bonus — the Session 6 browser-automation plugin:
+That's the core toolkit. Optional power-tools — install any from the marketplace list (or by command):
 
 ```
+/plugin install skyscraper@ccmb-marketplace
+/plugin install funnel-hack@ccmb-marketplace
 /plugin install browser-monkey@ccmb-marketplace
 ```
 
@@ -53,14 +55,20 @@ Say "train my voice" — produces a Voice Template every content skill reads aut
 | Skill | Just say… | Does |
 |---|---|---|
 | `campaign-brainstorm` | "brainstorm a launch" | Dual-mode campaign brief generator; output feeds the funnel skills |
-| `skyscraper` | "scan for existing solutions" | On-demand: checks native skills / Apify / Reddit / YouTube before you build something from scratch. Run it when you're about to build a custom tool. `/claude-code-marketing-bootcamp:skyscraper-setup` shows which optional API keys are active. |
 | `safe-install` | "safely install \<package\>" | npm/CLI shield — publish-date checks, CVE lookups, version pinning. Auto-active via the bundled `safe-npm` once enabled. |
 
-### Browser Monkey (separate optional plugin) — the S6 dashboard bonus
+## Optional power-tool plugins (same marketplace)
 
-`monkey` (router) · `sniffer` (discover a site's API surface) · `replay` (fire the proven calls at fetch() speed)
+Three standalone tools, each its own plugin. Add the marketplace once, then install any of them from the list.
 
-For dashboard sources that have data but **no public API** (Substack is the classic case). Sniff the dashboard once, replay the pull forever, write to Supabase — then save the workflow as a one-word slash command. Keyless (uses your logged-in browser session). **Scope guard: no-API + not-anti-bot + your own account only — never point it at LinkedIn.** Install: `/plugin install browser-monkey@ccmb-marketplace`.
+### Skyscraper — pre-build research
+`skyscraper` (+ 5 scout sub-skills) · `/skyscraper-setup`. Say "scan for existing solutions." Fans out across native skills / Apify / Reddit / YouTube before you build something custom — the cheapest tool is the one you didn't have to build. `/plugin install skyscraper@ccmb-marketplace`.
+
+### Funnel Hack — competitor teardown
+`funnel-hack`. Say "funnel-hack [competitor]." Reverse-engineers a competitor's funnel and adapts it to your brand (reads your mission / voice / ICP / offers first, so output is draft-ready in your voice). Pairs with Skyscraper. `/plugin install funnel-hack@ccmb-marketplace`.
+
+### Browser Monkey — no-API analytics (S6 dashboard bonus)
+`monkey` (router) · `sniffer` (discover a site's API surface) · `replay` (fire proven calls at fetch() speed). For dashboard sources with data but **no public API** (Substack is the classic case). Sniff once, replay forever, write to Supabase — then save the workflow as a one-word slash command. Keyless (uses your logged-in browser session). **Scope guard: no-API + not-anti-bot + your own account only — never point it at LinkedIn.** `/plugin install browser-monkey@ccmb-marketplace`.
 
 ## Requirements
 

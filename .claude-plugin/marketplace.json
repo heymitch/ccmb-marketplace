@@ -5,16 +5,28 @@
     "email": "mitch@ship30for30.com"
   },
   "metadata": {
-    "description": "The Claude Code Marketing Bootcamp marketplace. Two plugins: the full marketing-funnel toolkit (25 skills, incl. competitor funnel-hacking, Voice Lab, campaign planning, skyscraper research, and a supply-chain install shield) plus Browser Monkey, a two-phase browser-automation bonus for pulling analytics from no-API dashboards.",
-    "version": "2.1.0",
+    "description": "The Claude Code Marketing Bootcamp marketplace. Four plugins: the core marketing-funnel toolkit (23 skills — landing pages, lead magnets, free tools, lead research, email nurture, dashboards, Voice Lab, campaign planning, install shield) plus three optional power-tools — Skyscraper (pre-build research), Funnel Hack (competitor teardown), and Browser Monkey (no-API analytics via browser automation).",
+    "version": "2.2.0",
     "homepage": "https://claudecodemarketingbootcamp.com/"
   },
   "plugins": [
     {
       "name": "claude-code-marketing-bootcamp",
       "source": "./plugins/claude-code-marketing-bootcamp",
-      "description": "The complete Claude Code Marketing Bootcamp toolkit. 25 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards — plus competitor funnel-hacking, Voice Lab (10-skill voice training), campaign planning, skyscraper research, and a supply-chain install shield. Say what you want; Claude runs the right skill.",
-      "version": "1.1.0"
+      "description": "The complete Claude Code Marketing Bootcamp toolkit. 23 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards — plus Voice Lab (10-skill voice training), campaign planning, and a supply-chain install shield. Say what you want; Claude runs the right skill. The core bootcamp install.",
+      "version": "1.2.0"
+    },
+    {
+      "name": "skyscraper",
+      "source": "./plugins/skyscraper",
+      "description": "Scan existing solutions before you build from scratch. Fans out parallel scouts across native skills, Apify Store, Reddit, and YouTube, then returns a ranked report of what already exists and how to clone or adapt it. Run it whenever you're about to vibe-code a custom tool. Includes /skyscraper-setup for optional API-key status.",
+      "version": "1.0.0"
+    },
+    {
+      "name": "funnel-hack",
+      "source": "./plugins/funnel-hack",
+      "description": "Reverse-engineer a competitor's funnel and adapt it to your brand. Reads your working-dir brand config (mission, voice, ICP, offer ladder), then produces a steal / differentiate / content-ideas playbook snapped to YOUR positioning — not generic advice. Pairs with Skyscraper for full competitive intel.",
+      "version": "1.0.0"
     },
     {
       "name": "browser-monkey",
