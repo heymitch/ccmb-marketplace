@@ -2,6 +2,15 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [2.1.0] — 2026-05-28
+
+### Added
+- **Browser Monkey** as a second plugin (`browser-monkey@ccmb-marketplace`, v0.1.0) — the Session 6 dashboard bonus. Two-phase browser API acceleration for no-API sources: the **Sniffer** discovers what APIs a site actually calls; **Monkey** routes; **Replay** fires the proven calls at fetch() speed using your own logged-in browser session (keyless — no API keys). Pull analytics from dashboards with no public API (Substack) into Supabase.
+  - 3 skills (`monkey` / `sniffer` / `replay`) + references (`endpoint-schema`, `monkey-js-template`, `url-variable-rules`).
+  - **Replay Step 8 (new):** after a successful end-to-end job, offers to save the whole orchestration as a reusable slash command (e.g. `/ss-stats`) — codify the proven workflow, not just the atomic call.
+  - **Scope guard baked in:** no-API + not-anti-bot + your-own-account only. Explicitly excludes LinkedIn (permanent bans, active litigation).
+- Marketplace now hosts **two plugins**; metadata + README updated to match. The `fathom.video/` sample working-folder from the source repo was intentionally excluded (personal sniffed data, not distributable).
+
 ## [2.0.1] — 2026-05-18
 
 ### Removed

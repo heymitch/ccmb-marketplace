@@ -1,0 +1,9 @@
+{
+  "name": "browser-monkey",
+  "version": "0.1.0",
+  "description": "Two-phase browser API acceleration for no-API sources. The Sniffer discovers what APIs a site actually calls; Monkey replays them at fetch() speed with your own logged-in session — no Playwright UI, no API keys. Pull analytics from dashboards that have no public API (Substack and friends) into Supabase, then save the proven workflow as a reusable slash command. NOT for anti-bot platforms like LinkedIn.",
+  "author": {
+    "name": "Mitch Harris"
+  },
+  "keywords": ["browser", "api", "automation", "fetch", "replay", "analytics", "no-api", "substack", "dashboard"]
+}

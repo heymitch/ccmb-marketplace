@@ -5,7 +5,7 @@
     "email": "mitch@ship30for30.com"
   },
   "metadata": {
-    "description": "The Claude Code Marketing Bootcamp marketplace. One plugin, 25 skills: the full marketing-funnel toolkit plus competitor funnel-hacking, Voice Lab, campaign planning, skyscraper research, and a supply-chain install shield.",
+    "description": "The Claude Code Marketing Bootcamp marketplace. Two plugins: the full marketing-funnel toolkit (25 skills, incl. competitor funnel-hacking, Voice Lab, campaign planning, skyscraper research, and a supply-chain install shield) plus Browser Monkey, a two-phase browser-automation bonus for pulling analytics from no-API dashboards.",
     "version": "2.1.0",
     "homepage": "https://claudecodemarketingbootcamp.com/"
   },
@@ -13,8 +13,14 @@
     {
       "name": "claude-code-marketing-bootcamp",
       "source": "./plugins/claude-code-marketing-bootcamp",
-      "description": "The complete Claude Code Marketing Bootcamp toolkit. 25 skills that build and deploy a full marketing funnel \u2014 landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards \u2014 plus competitor funnel-hacking, Voice Lab (10-skill voice training), campaign planning, skyscraper research, and a supply-chain install shield. Say what you want; Claude runs the right skill.",
+      "description": "The complete Claude Code Marketing Bootcamp toolkit. 25 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards — plus competitor funnel-hacking, Voice Lab (10-skill voice training), campaign planning, skyscraper research, and a supply-chain install shield. Say what you want; Claude runs the right skill.",
       "version": "1.1.0"
+    },
+    {
+      "name": "browser-monkey",
+      "source": "./plugins/browser-monkey",
+      "description": "Two-phase browser API acceleration for no-API sources. The Sniffer discovers what APIs a site actually calls; Monkey replays them at fetch() speed with your own logged-in session — no Playwright UI, no API keys. Pull analytics from dashboards that have no public API (Substack and friends) into Supabase, then save the proven workflow as a reusable slash command. The Session 6 dashboard bonus. NOT for anti-bot platforms like LinkedIn.",
+      "version": "0.1.0"
     }
   ]
 }

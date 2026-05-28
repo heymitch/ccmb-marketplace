@@ -1,6 +1,6 @@
 # Claude Code Marketing Bootcamp — Plugin Marketplace
 
-One plugin. 24 skills. The complete marketing-funnel toolkit you build across the bootcamp, plus Voice Lab, campaign planning, and a supply-chain install shield — all under a single install.
+Two plugins. The complete marketing-funnel toolkit (25 skills) plus **Browser Monkey**, a two-phase browser-automation bonus for pulling analytics from no-API dashboards.
 
 ## Install
 
@@ -11,7 +11,13 @@ In Claude Code (or the Code tab in Claude Desktop):
 /plugin install claude-code-marketing-bootcamp@ccmb-marketplace
 ```
 
-That's it. One plugin, everything included. Then just tell Claude what you want:
+That's the core toolkit. Optional bonus — the Session 6 browser-automation plugin:
+
+```
+/plugin install browser-monkey@ccmb-marketplace
+```
+
+Then just tell Claude what you want:
 
 ```
 build my landing page
@@ -49,6 +55,12 @@ Say "train my voice" — produces a Voice Template every content skill reads aut
 | `campaign-brainstorm` | "brainstorm a launch" | Dual-mode campaign brief generator; output feeds the funnel skills |
 | `skyscraper` | "scan for existing solutions" | On-demand: checks native skills / Apify / Reddit / YouTube before you build something from scratch. Run it when you're about to build a custom tool. `/claude-code-marketing-bootcamp:skyscraper-setup` shows which optional API keys are active. |
 | `safe-install` | "safely install \<package\>" | npm/CLI shield — publish-date checks, CVE lookups, version pinning. Auto-active via the bundled `safe-npm` once enabled. |
+
+### Browser Monkey (separate optional plugin) — the S6 dashboard bonus
+
+`monkey` (router) · `sniffer` (discover a site's API surface) · `replay` (fire the proven calls at fetch() speed)
+
+For dashboard sources that have data but **no public API** (Substack is the classic case). Sniff the dashboard once, replay the pull forever, write to Supabase — then save the workflow as a one-word slash command. Keyless (uses your logged-in browser session). **Scope guard: no-API + not-anti-bot + your own account only — never point it at LinkedIn.** Install: `/plugin install browser-monkey@ccmb-marketplace`.
 
 ## Requirements
 
