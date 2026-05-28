@@ -2,6 +2,19 @@
 
 All notable changes to the CCMB Marketplace.
 
+## [3.0.0] — 2026-05-28
+
+### Changed — RE-CONSOLIDATED to a single plugin (reverses 2.1.0 + 2.2.0)
+- **Folded Skyscraper, Funnel Hack, and Browser Monkey back into the core `claude-code-marketing-bootcamp` plugin as skills.** The marketplace now hosts **ONE plugin** again (`claude-code-marketing-bootcamp`, v1.3.0, **28 skills**). `git mv` preserved history.
+  - `skyscraper` → `skills/skyscraper/` (5 scout sub-skills + 4 references intact); `/skyscraper-setup` → core `commands/`.
+  - `funnel-hack` → `skills/funnel-hack/` (PLAYBOOK + REPORT-TEMPLATE intact).
+  - Browser Monkey → `skills/monkey/`, `skills/sniffer/`, `skills/replay/`; shared refs → plugin-root `references/` (endpoint-schema, monkey-js-template, url-variable-rules).
+- Skill count: 23 → **28**. Plugin `1.2.0 → 1.3.0`. Marketplace `metadata.version 2.2.0 → 3.0.0` (structural).
+- README reframed to one-install; MAINTAINERS records the round-trip + GUI rationale.
+
+### Why reverse the split
+In the Claude Desktop GUI, sibling plugins under a single marketplace did **not** surface reliably as individually-installable cards — students saw only the core plugin "at the top level," not skyscraper/funnel-hack/browser-monkey. Compounded by refresh confusion: remove + re-add creates a **duplicate** marketplace entry (it doesn't refresh); the correct command is `/plugin marketplace update ccmb-marketplace`. One plugin = one card = zero discovery friction, which is what the GUI-first onboarding needs.
+
 ## [2.2.0] — 2026-05-28
 
 ### Changed

@@ -10,8 +10,9 @@ Internal operations for the CCMB marketplace. Students never read this — see `
 plugins/
   claude-code-marketing-bootcamp/
     .claude-plugin/plugin.json   ← plugin manifest (name + metadata only)
-    skills/<name>/SKILL.md       ← 24 skills, each with its own references/assets intact
+    skills/<name>/SKILL.md       ← 28 skills, each with its own references/assets intact
     commands/skyscraper-setup.md ← the one command (skyscraper key/status check)
+    references/*.md              ← Browser Monkey shared refs (endpoint-schema, monkey-js-template, url-variable-rules)
     bin/safe-npm + bin/lib/*.py  ← auto-added to PATH when plugin enabled (safe-install)
     config/campaign-status.json  ← offline fallback for the shield
     .env.example
@@ -20,11 +21,13 @@ references/vibe-editing.md
 CHANGELOG.md
 ```
 
-**One plugin, not ten.** The bootcamp ships as a single plugin (`claude-code-marketing-bootcamp`) with 24 skills in its `skills/` directory — the compound-engineering model. Students run two commands: add marketplace, install the one plugin. There is no `displayName` field in the plugin schema; the plugin `name` *is* the display name and skill namespace (`claude-code-marketing-bootcamp:landing-page`). `name` must be kebab-case.
+**One plugin, not ten.** The bootcamp ships as a single plugin (`claude-code-marketing-bootcamp`) with 28 skills in its `skills/` directory — the compound-engineering model. Students run two commands: add marketplace, install the one plugin. There is no `displayName` field in the plugin schema; the plugin `name` *is* the display name and skill namespace (`claude-code-marketing-bootcamp:landing-page`). `name` must be kebab-case.
 
 ## Why everything is in one plugin
 
-Decided 2026-05-18. The expiring bonuses (Campaign Pack, Vibe Workshop) are handled separately on the landing page; the 24 skills here are "everything everyone gets." Splitting into per-session or per-bonus plugins fragmented the menu (10 entries instead of 1) and didn't match the compound-engineering single-plugin model the product targets. Voice Lab, skyscraper, safe-install, campaign-brainstorm are skills *inside* the one plugin, not separate installs.
+Decided 2026-05-18. The expiring bonuses (Campaign Pack, Vibe Workshop) are handled separately on the landing page; the 28 skills here are "everything everyone gets." Splitting into per-session or per-bonus plugins fragmented the menu (10 entries instead of 1) and didn't match the compound-engineering single-plugin model the product targets. Voice Lab, skyscraper, funnel-hack, browser-monkey (`monkey`/`sniffer`/`replay`), safe-install, campaign-brainstorm are skills *inside* the one plugin, not separate installs.
+
+**Re-consolidated 2026-05-28.** A brief 4-plugin split (marketplace 2.1.0–2.2.0: browser-monkey, then skyscraper + funnel-hack broken out) was REVERSED. In the Claude Desktop GUI, sibling plugins under a single marketplace didn't surface reliably as individually-installable cards — students saw only the core plugin "at the top level," and the documented refresh confusion (remove + re-add creates a *duplicate* marketplace instead of refreshing; correct command is `/plugin marketplace update ccmb-marketplace`) made it worse. Folding all three back in as skills makes it one install, one card, zero discovery friction. `git mv` preserved history. If a future split is attempted, verify GUI multi-plugin rendering first.
 
 ## Plugin-root machinery (NOT skills)
 

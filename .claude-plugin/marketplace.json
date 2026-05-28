@@ -5,34 +5,16 @@
     "email": "mitch@ship30for30.com"
   },
   "metadata": {
-    "description": "The Claude Code Marketing Bootcamp marketplace. Four plugins: the core marketing-funnel toolkit (23 skills — landing pages, lead magnets, free tools, lead research, email nurture, dashboards, Voice Lab, campaign planning, install shield) plus three optional power-tools — Skyscraper (pre-build research), Funnel Hack (competitor teardown), and Browser Monkey (no-API analytics via browser automation).",
-    "version": "2.2.0",
+    "description": "The Claude Code Marketing Bootcamp marketplace. One plugin, everything included: 28 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture, analytics dashboards — plus Voice Lab, campaign planning, an install shield, and the power-tools Skyscraper (pre-build research), Funnel Hack (competitor teardown), and Browser Monkey (no-API analytics).",
+    "version": "3.0.0",
     "homepage": "https://claudecodemarketingbootcamp.com/"
   },
   "plugins": [
     {
       "name": "claude-code-marketing-bootcamp",
       "source": "./plugins/claude-code-marketing-bootcamp",
-      "description": "The complete Claude Code Marketing Bootcamp toolkit. 23 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards — plus Voice Lab (10-skill voice training), campaign planning, and a supply-chain install shield. Say what you want; Claude runs the right skill. The core bootcamp install.",
-      "version": "1.2.0"
-    },
-    {
-      "name": "skyscraper",
-      "source": "./plugins/skyscraper",
-      "description": "Scan existing solutions before you build from scratch. Fans out parallel scouts across native skills, Apify Store, Reddit, and YouTube, then returns a ranked report of what already exists and how to clone or adapt it. Run it whenever you're about to vibe-code a custom tool. Includes /skyscraper-setup for optional API-key status.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "funnel-hack",
-      "source": "./plugins/funnel-hack",
-      "description": "Reverse-engineer a competitor's funnel and adapt it to your brand. Reads your working-dir brand config (mission, voice, ICP, offer ladder), then produces a steal / differentiate / content-ideas playbook snapped to YOUR positioning — not generic advice. Pairs with Skyscraper for full competitive intel.",
-      "version": "1.0.0"
-    },
-    {
-      "name": "browser-monkey",
-      "source": "./plugins/browser-monkey",
-      "description": "Two-phase browser API acceleration for no-API sources. The Sniffer discovers what APIs a site actually calls; Monkey replays them at fetch() speed with your own logged-in session — no Playwright UI, no API keys. Pull analytics from dashboards that have no public API (Substack and friends) into Supabase, then save the proven workflow as a reusable slash command. The Session 6 dashboard bonus. NOT for anti-bot platforms like LinkedIn.",
-      "version": "0.1.0"
+      "description": "The complete Claude Code Marketing Bootcamp toolkit. 28 skills that build and deploy a full marketing funnel — landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards — plus Voice Lab (10-skill voice training), campaign planning, a supply-chain install shield, and the power-tools Skyscraper (pre-build research), Funnel Hack (competitor teardown), and Browser Monkey (no-API analytics via browser automation). Say what you want; Claude runs the right skill. One install, everything included.",
+      "version": "1.3.0"
     }
   ]
 }

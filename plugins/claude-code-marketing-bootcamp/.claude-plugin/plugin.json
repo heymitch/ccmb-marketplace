@@ -1,7 +1,7 @@
 {
   "name": "claude-code-marketing-bootcamp",
-  "version": "1.2.0",
-  "description": "The complete Claude Code Marketing Bootcamp toolkit. 23 skills that build and deploy a full marketing funnel \u2014 landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards \u2014 plus Voice Lab (10-skill voice training), campaign planning, and a supply-chain install shield. Say what you want; Claude runs the right skill. (Skyscraper research and competitor funnel-hacking are now separate optional plugins in this marketplace.)",
+  "version": "1.3.0",
+  "description": "The complete Claude Code Marketing Bootcamp toolkit. 28 skills that build and deploy a full marketing funnel \u2014 landing pages, lead magnets, free tools, lead research, email nurture sequences, analytics dashboards \u2014 plus Voice Lab (10-skill voice training), campaign planning, a supply-chain install shield, and the power-tools: Skyscraper (pre-build research), Funnel Hack (competitor teardown), and Browser Monkey (no-API analytics via browser automation). Say what you want; Claude runs the right skill. One install, everything included.",
   "author": {
     "name": "Mitch Harris",
     "email": "mitch@ship30for30.com"
@@ -22,6 +22,11 @@
     "vercel",
     "supabase",
     "convertkit",
-    "bootcamp"
+    "bootcamp",
+    "skyscraper",
+    "funnel-hack",
+    "competitor-research",
+    "browser-monkey",
+    "analytics"
   ]
 }

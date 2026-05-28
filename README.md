@@ -1,6 +1,6 @@
 # Claude Code Marketing Bootcamp — Plugin Marketplace
 
-Four plugins in one marketplace. The core marketing-funnel toolkit (23 skills) plus three optional power-tools — **Skyscraper** (pre-build research), **Funnel Hack** (competitor teardown), and **Browser Monkey** (no-API analytics via browser automation).
+One plugin, everything included. The complete marketing-funnel toolkit (28 skills) — landing pages, lead magnets, free tools, lead research, email nurture, analytics dashboards, Voice Lab, campaign planning, an install shield, plus the power-tools **Skyscraper** (pre-build research), **Funnel Hack** (competitor teardown), and **Browser Monkey** (no-API analytics).
 
 ## Install
 
@@ -11,15 +11,7 @@ In Claude Code (or the Code tab in Claude Desktop):
 /plugin install claude-code-marketing-bootcamp@ccmb-marketplace
 ```
 
-That's the core toolkit. Optional power-tools — install any from the marketplace list (or by command):
-
-```
-/plugin install skyscraper@ccmb-marketplace
-/plugin install funnel-hack@ccmb-marketplace
-/plugin install browser-monkey@ccmb-marketplace
-```
-
-Then just tell Claude what you want:
+That's it — one install, all 28 skills. Then just tell Claude what you want:
 
 ```
 build my landing page
@@ -57,18 +49,13 @@ Say "train my voice" — produces a Voice Template every content skill reads aut
 | `campaign-brainstorm` | "brainstorm a launch" | Dual-mode campaign brief generator; output feeds the funnel skills |
 | `safe-install` | "safely install \<package\>" | npm/CLI shield — publish-date checks, CVE lookups, version pinning. Auto-active via the bundled `safe-npm` once enabled. |
 
-## Optional power-tool plugins (same marketplace)
+### Power-tools (now bundled in)
 
-Three standalone tools, each its own plugin. Add the marketplace once, then install any of them from the list.
-
-### Skyscraper — pre-build research
-`skyscraper` (+ 5 scout sub-skills) · `/skyscraper-setup`. Say "scan for existing solutions." Fans out across native skills / Apify / Reddit / YouTube before you build something custom — the cheapest tool is the one you didn't have to build. `/plugin install skyscraper@ccmb-marketplace`.
-
-### Funnel Hack — competitor teardown
-`funnel-hack`. Say "funnel-hack [competitor]." Reverse-engineers a competitor's funnel and adapts it to your brand (reads your mission / voice / ICP / offers first, so output is draft-ready in your voice). Pairs with Skyscraper. `/plugin install funnel-hack@ccmb-marketplace`.
-
-### Browser Monkey — no-API analytics (S6 dashboard bonus)
-`monkey` (router) · `sniffer` (discover a site's API surface) · `replay` (fire proven calls at fetch() speed). For dashboard sources with data but **no public API** (Substack is the classic case). Sniff once, replay forever, write to Supabase — then save the workflow as a one-word slash command. Keyless (uses your logged-in browser session). **Scope guard: no-API + not-anti-bot + your own account only — never point it at LinkedIn.** `/plugin install browser-monkey@ccmb-marketplace`.
+| Skill | Just say… | Does |
+|---|---|---|
+| `skyscraper` (+ 5 scout sub-skills) · `/skyscraper-setup` | "scan for existing solutions" | Fans out parallel scouts across native skills / Apify / Reddit / YouTube *before* you build something custom — the cheapest tool is the one you didn't have to build |
+| `funnel-hack` | "funnel-hack [competitor]" | Reverse-engineers a competitor's funnel and adapts it to *your* brand (reads your mission / voice / ICP / offers first). Pairs with Skyscraper |
+| `monkey` · `sniffer` · `replay` | "pull my Substack stats into the dashboard" | Browser Monkey — no-API analytics. Sniff a site's API surface once, replay at fetch() speed with your logged-in session, write to Supabase, save as a slash command. **Scope guard: no-API + not-anti-bot + your own account only — never point it at LinkedIn.** |
 
 ## Requirements
 
@@ -85,8 +72,8 @@ Each session's pre-work walks you through account setup before you need it.
 /plugin marketplace update ccmb-marketplace
 ```
 
-Backwards-compatible fixes ship straight to `main`; breaking changes bump the plugin version.
+This refreshes the marketplace listing **in place** — do NOT remove and re-add (that creates a duplicate marketplace entry). Backwards-compatible fixes ship straight to `main`; breaking changes bump the plugin version.
 
 ---
 
-*Maintainers: see [`MAINTAINERS.md`](./MAINTAINERS.md) for the campaign-status kill-switch, the consolidated-plugin layout, and the release checklist.*
+*Maintainers: see [`MAINTAINERS.md`](./MAINTAINERS.md) for the campaign-status kill-switch, the consolidated single-plugin layout, and the release checklist.*
