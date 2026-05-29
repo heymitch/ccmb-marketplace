@@ -1,7 +1,7 @@
 ---
 name: monkey
 description: >
-  Main entry point for the Sniffer and Monkey browser automation system. Routes to the right phase based on what exists in the working folder.
+  Main entry point for the Sniffer and Monkey browser automation system. Routes to the right phase based on what exists in the Monkey folder.
   Say "monkey [site]", "automate [task] on [site]", "use monkey for [site]", "run monkey", "sniff and replay", "browser shortcut for [site]", or "do [task] via API on [site]".
   Also triggers when a user wants to automate a browser task they've done before, or asks if a site has been sniffed already.
 user-invocable: true
@@ -9,36 +9,51 @@ user-invocable: true
 
 # Monkey — Router Skill
 
-The Monkey skill is the entry point for the Sniffer and Monkey system. It checks the working folder, decides which phase to run, and hands off to the right sub-skill.
+The Monkey skill is the entry point for the Sniffer and Monkey system. It checks the Monkey folder, decides which phase to run, and hands off to the right sub-skill.
 
 ## The Two-Phase Model
 
-**Phase 1 — Sniffer** (first time on a site): Intercept and catalog all fetch/XHR calls the site makes. Write `endpoints.json` (the API surface map) and a skeleton `monkey.js` to the working folder. This runs once per site.
+**Phase 1 — Sniffer** (first time on a site): Intercept and catalog all fetch/XHR calls the site makes. Write `endpoints.json` (the API surface map) and a skeleton `monkey.js` to the Monkey folder. This runs once per site.
 
-**Phase 2 — Replay** (every time after): Load `monkey.js` from the working folder. Execute the proven fetch() calls directly via `browser_evaluate`. No Playwright UI interaction needed. This is 10–100x faster than clicking through the UI.
+**Phase 2 — Replay** (every time after): Load `monkey.js` from the Monkey folder. Execute the proven fetch() calls directly via the Claude-in-Chrome `javascript_tool` (`mcp__Claude_in_Chrome__javascript_tool`). No UI clicking needed. This is 10–100x faster than navigating the UI.
+
+## Tooling (Claude Code native)
+
+This system drives **your real Chrome** through the Claude in Chrome extension, so requests run with your already-logged-in session cookies (ambient auth). Tools used:
+
+- `mcp__Claude_in_Chrome__tabs_context_mcp` — list open tabs and get a `tabId`
+- `mcp__Claude_in_Chrome__navigate` — open/redirect a tab to the target domain
+- `mcp__Claude_in_Chrome__javascript_tool` — execute JS in a tab (the engine of both phases)
+- `mcp__Claude_in_Chrome__read_network_requests` — native fetch/XHR log (a complement to the sniffer's in-page interceptor)
+
+If the extension isn't connected (no tabs returned), tell the user to connect Claude in Chrome and reload the target site, then retry. Never fall back to a fresh Playwright browser — it won't carry the user's session, which breaks ambient auth.
 
 ## Routing Logic
 
 When this skill is invoked, follow this decision tree:
 
-### Step 1: Check for a working folder
+### Step 1: Ensure the Monkey folder exists
 
-Use the `Glob` or `Bash` tool to check if the user has a working folder selected (files accessible at `/sessions/.../mnt/`). If no folder is selected, tell the user:
+Monkey persists the API map and scripts between sessions in a plain local folder:
 
-> "To use Monkey, you'll need a working folder — this is where I save the API map and scripts between sessions. Select a folder in Cowork settings, then try again."
+```
+~/.claude/monkey/[site-name]/
+```
+
+Create it on first use (`mkdir -p ~/.claude/monkey/[site-name]`). No setup or "select a folder" step is required — the Claude Code filesystem is persistent. If the user wants the files in a project repo instead (e.g. to commit them), accept an explicit override path and use that throughout.
 
 ### Step 2: Identify the target site
 
 Ask the user (or infer from their message) which site or service they want to automate. Extract the base domain (e.g., `substack.com`, `notion.so`).
 
-### Step 3: Check what's already in the working folder
+### Step 3: Check what's already in the Monkey folder
 
-Look for these files in the working folder (or a subfolder named after the site):
+Look for these files in the Monkey folder (or a subfolder named after the site):
 - `endpoints.json` — the API surface map
 - `monkey.js` — proven, executable fetch() functions
 
 ```bash
-ls /path/to/working-folder/[site-name]/
+ls ~/.claude/monkey/[site-name]/
 ```
 
 ### Step 4: Route to the right phase
@@ -55,7 +70,7 @@ If the user just ran a Replay task successfully for the first time on a given en
 
 > "That worked. Want me to save this as a permanent function in monkey.js so future sessions can skip the setup entirely?"
 
-If yes, append the proven function to `monkey.js` in their working folder.
+If yes, append the proven function to `monkey.js` in their Monkey folder.
 
 ## What to Tell the User
 
@@ -68,7 +83,7 @@ Keep it simple. Don't expose file paths or implementation details unless asked. 
 ## Important Rules
 
 - Never hardcode credentials or API keys in `monkey.js` — auth is always ambient (browser session cookies)
-- The working folder is the source of truth — always read from it, always write back to it
+- The Monkey folder is the source of truth — always read from it, always write back to it
 - `monkey.js` is written from proof, not speculation — only add functions that have returned HTTP 2xx at least once
 - If a site blocks browser automation, stop and tell the user
 

@@ -14,25 +14,29 @@ The Sniffer intercepts real network calls from inside the browser tab to build a
 ## How Sniffer Works
 
 1. Navigate to the target site (user must already be logged in)
-2. Inject the intercept script into the page via `browser_evaluate`
+2. Inject the intercept script into the page via the Claude-in-Chrome `javascript_tool`
 3. Trigger network activity by interacting with the page
 4. Harvest the captured calls
 5. Filter noise (analytics, CDNs, static assets)
-6. Write `endpoints.json` to the working folder
-7. Write a skeleton `monkey.js` to the working folder
+6. Write `endpoints.json` to the Monkey folder
+7. Write a skeleton `monkey.js` to the Monkey folder
 
 ## Step 1: Pre-flight Check
 
+First, get a tab to work in. Call `mcp__Claude_in_Chrome__tabs_context_mcp` to list open tabs and grab a `tabId`. If nothing comes back, the Claude in Chrome extension isn't connected — ask the user to connect it and reload the target site. Use `mcp__Claude_in_Chrome__navigate` to point the tab at the target domain if needed. Every `javascript_tool` call below takes this `tabId`.
+
 Before injecting, confirm:
 - The user is logged into the target site (auth must be ambient — no credentials needed in code)
-- There is a working folder available to save output files
+- The Monkey folder exists (`~/.claude/monkey/[site-name]/`) — create it with `mkdir -p` if not
 - The browser tab is on the correct domain
 
 Ask the user to navigate to the most data-rich page of the site (e.g., their dashboard, a content editor, a list view) before injection. The richer the page, the more calls get captured.
 
+> **Native shortcut:** Claude in Chrome also exposes `mcp__Claude_in_Chrome__read_network_requests`, which logs fetch/XHR for a tab without any injection. Use it as a quick first look or a cross-check. The in-page interceptor below is still the primary method — it captures response shapes and bodies, which the network log alone may not surface.
+
 ## Step 2: Inject the Intercept Script
 
-Use `browser_evaluate` with this script on the target tab:
+Use `mcp__Claude_in_Chrome__javascript_tool` (`action: "javascript_exec"`, your `tabId`, and the script below as `text`). The script is a self-contained IIFE that returns a string, so it works as a `javascript_tool` expression as-is — do not wrap it in a top-level `return`.
 
 ```javascript
 (function() {
@@ -102,7 +106,7 @@ For content creation apps (Substack, Notion, etc.), also:
 
 ## Step 4: Harvest
 
-Run this via `browser_evaluate` to count captures:
+Run this via `javascript_tool` (same `tabId`) to count captures:
 
 ```javascript
 JSON.stringify(window.__capturedRequests.length + ' requests captured');
@@ -130,7 +134,7 @@ Then run the full harvest and filter:
 
 ### endpoints.json
 
-Write to `[working-folder]/[site-name]/endpoints.json`. Format:
+Write to `~/.claude/monkey/[site-name]/endpoints.json`. Format:
 
 ```json
 {
@@ -159,7 +163,7 @@ Add a `notes` field to each endpoint summarizing what it appears to do based on 
 
 ### monkey.js (skeleton)
 
-Write a skeleton `monkey.js` to `[working-folder]/[site-name]/monkey.js`. This is a template — real function bodies are filled in after the first successful Replay run. See `references/monkey-js-template.md` for the exact format.
+Write a skeleton `monkey.js` to `~/.claude/monkey/[site-name]/monkey.js`. This is a template — real function bodies are filled in after the first successful Replay run. See `references/monkey-js-template.md` for the exact format.
 
 The skeleton should include:
 - One commented-out function stub per interesting endpoint
@@ -181,7 +185,7 @@ PUT     /api/v1/drafts/:id             200     fetch   Update draft
 GET     /api/v1/user/profile           200     fetch   Current user info
 GET     /api/v1/publications/:id/...   200     fetch   Publication config
 
-Files saved to your working folder:
+Files saved to your Monkey folder:
   [site-name]/endpoints.json  — full API surface map
   [site-name]/monkey.js       — ready for Replay phase
 ```

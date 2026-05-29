@@ -133,9 +133,9 @@ For GraphQL, enumerate operations instead of paths.
 
 ---
 
-## Working Folder Structure
+## Monkey Folder Structure
 
-A fully populated working folder for a site looks like:
+A fully populated Monkey folder for a site looks like:
 
 ```
 [working-folder]/

@@ -6,7 +6,7 @@ This is the format for `monkey.js` files written by the Sniffer skill and append
 
 - **Proof-based, not speculative** — every function in this file has returned HTTP 2xx at least once in a real session
 - **Ambient auth only** — all fetch calls use `credentials: "include"`, never hardcoded tokens or API keys
-- **Self-contained** — each function can be copy-pasted into `browser_evaluate` and run standalone
+- **Self-contained** — each function can be copy-pasted into the Claude-in-Chrome `javascript_tool` and run standalone
 - **Documented** — JSDoc comments describe what each function does, its parameters, and expected return shape
 
 ---
@@ -20,7 +20,7 @@ This is the format for `monkey.js` files written by the Sniffer skill and append
  * Sniffed: [DATE]
  * Last proven run: [DATE]
  *
- * Usage: These functions run inside browser_evaluate on a tab at [SITE URL].
+ * Usage: These functions run inside the Claude-in-Chrome javascript_tool on a tab at [SITE URL].
  * Auth is ambient — the browser session must be authenticated.
  * Never add API keys or tokens here.
  */
@@ -88,7 +88,7 @@ This is a real `monkey.js` built from the Substack publisher API session:
  * Sniffed: 2026-02-26
  * Last proven run: 2026-02-26
  *
- * Usage: Run inside browser_evaluate on any tab at heymitch.substack.com
+ * Usage: Run inside the Claude-in-Chrome javascript_tool on any tab at heymitch.substack.com
  * Auth is ambient — must be logged into Substack.
  */
 

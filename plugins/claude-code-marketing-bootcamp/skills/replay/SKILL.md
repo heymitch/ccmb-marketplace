@@ -1,7 +1,7 @@
 ---
 name: replay
 description: >
-  Replay phase of the Sniffer and Monkey system. Loads monkey.js from the working folder and executes proven fetch() calls directly via browser_evaluate — no Playwright UI interaction needed.
+  Replay phase of the Sniffer and Monkey system. Loads monkey.js from the Monkey folder and executes proven fetch() calls directly via the Claude-in-Chrome javascript_tool — no UI interaction needed.
   Say "replay [task] on [site]", "use the API to [task]", "run monkey for [task]", "skip the UI and [task]", "fast mode for [task]", or "do this without clicking around".
   Also triggers automatically when Monkey routes to this phase because endpoints.json and monkey.js already exist.
 user-invocable: true
@@ -9,27 +9,27 @@ user-invocable: true
 
 # Replay — Fast Execution Phase
 
-The Replay skill loads proven `monkey.js` functions and executes them directly via `browser_evaluate`. This bypasses all Playwright UI interaction — no clicking, no form filling, no waiting for page loads. Just direct API calls using the browser's ambient session auth.
+The Replay skill loads proven `monkey.js` functions and executes them directly via the Claude-in-Chrome `javascript_tool` (`mcp__Claude_in_Chrome__javascript_tool`). This bypasses all UI interaction — no clicking, no form filling, no waiting for page loads. Just direct API calls using the browser's ambient session auth (your real, logged-in Chrome tab).
 
 ## When Replay Runs
 
-Replay only runs when a `monkey.js` already exists in the working folder for the target site. If not, route back to the Sniffer skill.
+Replay only runs when a `monkey.js` already exists in the Monkey folder for the target site. If not, route back to the Sniffer skill.
 
 ## How Replay Works
 
-1. Read `monkey.js` from the working folder
+1. Read `monkey.js` from the Monkey folder
 2. Identify which function matches the user's task (or build a new one from `endpoints.json`)
 3. Open or confirm a browser tab on the target domain (for ambient auth)
-4. Execute the fetch() call via `browser_evaluate`
+4. Execute the fetch() call via the Claude-in-Chrome `javascript_tool`
 5. Confirm the result (HTTP status, response data)
 6. If successful and this is a new function, offer to save it back to `monkey.js`
 
 ## Step 1: Load monkey.js
 
-Read the file from the working folder:
+Read the file from the Monkey folder:
 
 ```
-[working-folder]/[site-name]/monkey.js
+~/.claude/monkey/[site-name]/monkey.js
 ```
 
 Parse the available functions. Each function has a JSDoc comment describing what it does, what parameters it takes, and what HTTP status a success looks like.
@@ -50,22 +50,23 @@ If no function matches, check `endpoints.json` — if a matching endpoint exists
 
 Replay always runs fetch() inside a live browser tab on the target domain. This is required for ambient session auth (cookies).
 
-Check if there's already an open tab on the target domain. If not, navigate to the site's home page or dashboard. The user must be logged in — if not, stop and ask them to log in first.
+Call `mcp__Claude_in_Chrome__tabs_context_mcp` to list tabs and find one on the target domain, capturing its `tabId`. If none exists, use `mcp__Claude_in_Chrome__navigate` to open the site's home page or dashboard. If `tabs_context_mcp` returns nothing at all, the Claude in Chrome extension isn't connected — ask the user to connect it. The user must be logged in — if not, stop and ask them to log in first.
 
 You do NOT need to navigate to the specific page — just any page on the correct domain. The session cookies will be present.
 
-## Step 4: Execute via browser_evaluate
+## Step 4: Execute via javascript_tool
 
-Inject the relevant function(s) from `monkey.js` and call them:
+Run the relevant function(s) from `monkey.js` inside the tab using `mcp__Claude_in_Chrome__javascript_tool` (`action: "javascript_exec"`, your `tabId`). The code runs **in the page context** — there is no `page` argument, and `location.origin` already points at the target site. Pass the code as an expression in `text`; do **not** use a top-level `return`.
+
+**Two-step pattern (recommended).** `javascript_tool` may hand back a pending Promise instead of the resolved value, so don't depend on awaiting inline. Instead, fire the call and stash the result on `window`, then read it back in a second call. This mirrors the sniffer's inject→harvest split and is fully reliable.
+
+Call 1 — fire and stash:
 
 ```javascript
-// Example for Substack draft creation
-async (page) => {
-  // Inject the helper
-  async function createDraft(title, subtitle, bodyText) {
+(() => {
+  window.__monkeyResult = undefined;
+  async function createDraft(draftId, title, subtitle, bodyText) {
     const ORIGIN = location.origin;
-    // First, mint a new draft ID by navigating (only once)
-    // Or pass an existing ID
     const body = JSON.stringify({
       draft_title: title,
       draft_subtitle: subtitle,
@@ -74,17 +75,29 @@ async (page) => {
         content: [{ type: "paragraph", content: [{ type: "text", text: bodyText }] }]
       })
     });
-    const res = await fetch(`${ORIGIN}/api/v1/drafts/${DRAFT_ID}`, {
+    const res = await fetch(`${ORIGIN}/api/v1/drafts/${draftId}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: body,
+      body,
       credentials: "include"
     });
-    return { status: res.status, data: await res.json() };
+    let data; try { data = await res.json(); } catch { data = null; }
+    return { status: res.status, data };
   }
-  return await createDraft("My Title", "My Subtitle", "Body text here");
-}
+  createDraft(DRAFT_ID, "My Title", "My Subtitle", "Body text here")
+    .then(r => { window.__monkeyResult = r; })
+    .catch(e => { window.__monkeyResult = { error: String(e) }; });
+  return "fired";
+})();
 ```
+
+Call 2 — read the stashed result (wait ~1s, repeat if still `undefined`):
+
+```javascript
+JSON.stringify(window.__monkeyResult ?? "pending");
+```
+
+If your environment *does* resolve Promises from `javascript_tool` directly, you can collapse this to a single async-IIFE expression — but the two-step pattern always works.
 
 Always use `credentials: "include"` for all fetch calls. Never hardcode auth tokens.
 
@@ -156,4 +169,4 @@ Keep it fast and clear:
 
 See `references/monkey-js-template.md` for function formats.
 See `references/url-variable-rules.md` for how to handle dynamic URL segments like `:id` and `:uuid`.
-See `endpoints.json` in the working folder for the specific endpoint shapes for each site.
+See `endpoints.json` in the Monkey folder for the specific endpoint shapes for each site.
